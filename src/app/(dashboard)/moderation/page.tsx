@@ -26,41 +26,11 @@ export default function ModerationPage() {
     const [actioning, setActioning] = useState<string | null>(null);
 
     useEffect(() => {
-        // There isn't an explicit endpoint listed in the API ref to *get* all flagged/reported posts (only to flag them).
-        // Let's assume there is one at GET /api/admin/moderation/reports for Super Admins.
         if (isSuperAdmin) {
             api.get<ReportedPost[]>('/admin/moderation/reports')
                 .then(res => setReports(res.data))
                 .catch(err => {
                     console.error('Failed to load flagged content:', err);
-                    // Mocking data for development UI display
-                    setReports([
-                        {
-                            _id: 'rep-m1',
-                            issueId: {
-                                _id: 'iss-mock1',
-                                category: 'Road',
-                                description: 'Check out this website for cheap loans!',
-                                status: 'Pending',
-                                urgencyCount: 0,
-                                location: { address: 'Unknown' },
-                                citizenId: 'c1',
-                                createdAt: new Date().toISOString(),
-                                updatedAt: new Date().toISOString()
-                            } as unknown as IssueReport,
-                            citizenId: {
-                                _id: 'c2',
-                                firebaseUid: 'mock2',
-                                fullName: 'Concerned Citizen',
-                                email: 'honest@example.com',
-                                role: 'CITIZEN',
-                                createdAt: new Date().toISOString(),
-                                updatedAt: new Date().toISOString()
-                            },
-                            reason: 'Spam or misleading content',
-                            createdAt: new Date().toISOString()
-                        }
-                    ]);
                 })
                 .finally(() => setLoading(false));
         } else {
@@ -71,11 +41,10 @@ export default function ModerationPage() {
     const handleDismiss = async (reportId: string) => {
         setActioning(`dismiss-${reportId}`);
         try {
-            // Mocking dismiss
-            await new Promise(resolve => setTimeout(resolve, 800));
+            await api.delete(`/admin/moderation/reports/${reportId}/dismiss`);
             setReports(reports.filter(r => r._id !== reportId));
         } catch (error) {
-            console.error(error);
+            console.error('Error dismissing report:', error);
         } finally {
             setActioning(null);
         }
@@ -84,11 +53,10 @@ export default function ModerationPage() {
     const handleDeleteIssue = async (reportId: string, issueId: string) => {
         setActioning(`delete-${reportId}`);
         try {
-            // Assuming a mock delete endpoint exists
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await api.delete(`/admin/moderation/reports/${reportId}/issue`);
             setReports(reports.filter(r => r._id !== reportId));
         } catch (error) {
-            console.error(error);
+            console.error('Error deleting issue:', error);
         } finally {
             setActioning(null);
         }
