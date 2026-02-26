@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { User, Department } from '@/types';
 import { Users as UsersIcon, Shield, Search, Plus, MoreVertical, ShieldAlert, Key, UserX } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { AddAdminModal } from '@/components/ui/AddAdminModal';
+import api from '@/lib/api';
 
 export default function UsersPage() {
     const { hasRole } = useAuth();
@@ -13,16 +15,39 @@ export default function UsersPage() {
 
     const [activeTab, setActiveTab] = useState<'admins' | 'citizens'>('admins');
     const [searchTerm, setSearchTerm] = useState('');
-    const [loading, setLoading] = useState(false); // In real app, fetch useEffect here
+    const [loading, setLoading] = useState(true);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-    // Mocks
-    const [admins] = useState<User[]>([
-        { _id: 'a1', firebaseUid: 'f1', fullName: 'Mesfin Tilahun', email: 'mesfin.road@cityfix.gov', role: 'SECTOR_ADMIN', department: 'Road', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { _id: 'a2', firebaseUid: 'f2', fullName: 'Chaltu Alemu', email: 'chaltu.water@cityfix.gov', role: 'SECTOR_ADMIN', department: 'Water', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
-    ]);
-    const [citizens] = useState<User[]>([
-        { _id: 'c1', firebaseUid: 'f3', fullName: 'Abebe Girma', email: 'abebe@example.com', phoneNumber: '+251911000000', role: 'CITIZEN', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
-    ]);
+    const [admins, setAdmins] = useState<User[]>([]);
+    const [citizens, setCitizens] = useState<User[]>([]);
+
+    useEffect(() => {
+        if (!isSuperAdmin) return;
+
+        const fetchUsers = async () => {
+            try {
+                const res = await api.get<{ admins: User[], citizens: User[] }>('/admin/users');
+                setAdmins(res.data.admins);
+                setCitizens(res.data.citizens);
+            } catch (error: any) {
+                console.error('Failed to fetch users:', error);
+                if (error.response) {
+                    console.error('Server Data:', error.response.data);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUsers();
+    }, [isSuperAdmin]);
+
+    const handleAddAdmin = async (adminData: any) => {
+        // Send request to backend to create admin
+        const res = await api.post('/admin/users', adminData);
+        // Append to local state list
+        setAdmins(prev => [res.data.user, ...prev]);
+    };
 
     if (!isSuperAdmin) {
         return (
@@ -44,7 +69,10 @@ export default function UsersPage() {
             <div className="glass-card overflow-hidden">
                 <div className="p-4 border-b border-white/5 flex items-center justify-between bg-surface-900/50">
                     <h3 className="font-semibold text-white">Registered Sector Admins</h3>
-                    <button className="flex items-center gap-2 px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-brand-500/20">
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-brand-500/20"
+                    >
                         <Plus className="h-4 w-4" />
                         New Admin
                     </button>
@@ -165,8 +193,8 @@ export default function UsersPage() {
                     <button
                         onClick={() => setActiveTab('admins')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'admins'
-                                ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
-                                : 'text-surface-300 hover:bg-surface-800 hover:text-white border border-transparent'
+                            ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
+                            : 'text-surface-300 hover:bg-surface-800 hover:text-white border border-transparent'
                             }`}
                     >
                         <Shield className={`h-5 w-5 ${activeTab === 'admins' ? 'text-brand-400' : 'text-surface-400'}`} />
@@ -175,8 +203,8 @@ export default function UsersPage() {
                     <button
                         onClick={() => setActiveTab('citizens')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'citizens'
-                                ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
-                                : 'text-surface-300 hover:bg-surface-800 hover:text-white border border-transparent'
+                            ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
+                            : 'text-surface-300 hover:bg-surface-800 hover:text-white border border-transparent'
                             }`}
                     >
                         <UsersIcon className={`h-5 w-5 ${activeTab === 'citizens' ? 'text-brand-400' : 'text-surface-400'}`} />
@@ -210,6 +238,12 @@ export default function UsersPage() {
                     )}
                 </div>
             </div>
+
+            <AddAdminModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onAdd={handleAddAdmin}
+            />
         </div>
     );
 }

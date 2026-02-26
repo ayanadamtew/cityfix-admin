@@ -4,9 +4,9 @@ import React, { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-import { IssueReport, User } from '@/types';
+import { IssueReport, User, IssueComment } from '@/types';
 import api from '@/lib/api';
-import { ChevronLeft, MapPin, User as UserIcon, Calendar, Clock, Image as ImageIcon, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { ChevronLeft, MapPin, User as UserIcon, Calendar, Clock, Image as ImageIcon, CheckCircle2, AlertTriangle, Loader2, MessageSquare, Send } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 // Mapbox fallback used instead of react-map-gl which fails in certain node/turbopack configs
 
@@ -22,12 +22,18 @@ export default function IssueDetailPage(props: Props) {
     const { id } = use(props.params);
 
     const [issue, setIssue] = useState<IssueReport | null>(null);
+    const [comments, setComments] = useState<IssueComment[]>([]);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
+    const [newComment, setNewComment] = useState('');
+    const [postingComment, setPostingComment] = useState(false);
 
     useEffect(() => {
-        api.get<{ issue: IssueReport }>(`/issues/${id}`)
-            .then(res => setIssue(res.data.issue))
+        api.get<{ issue: IssueReport, comments: IssueComment[] }>(`/issues/${id}`)
+            .then(res => {
+                setIssue(res.data.issue);
+                setComments(res.data.comments || []);
+            })
             .catch(err => {
                 console.error('Failed to load issue', err);
                 // Fallback mock data
@@ -60,6 +66,22 @@ export default function IssueDetailPage(props: Props) {
             setIssue({ ...issue, status: newStatus });
         } finally {
             setUpdating(false);
+        }
+    };
+
+    const handlePostComment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newComment.trim()) return;
+
+        setPostingComment(true);
+        try {
+            const res = await api.post(`/issues/${id}/comments`, { text: newComment });
+            setComments(prev => [...prev, res.data]);
+            setNewComment('');
+        } catch (error) {
+            console.error('Failed to post comment:', error);
+        } finally {
+            setPostingComment(false);
         }
     };
 
@@ -168,6 +190,61 @@ export default function IssueDetailPage(props: Props) {
                             </div>
                         )}
                     </div>
+
+                    {/* Comments Section */}
+                    <div className="glass-card p-6 md:p-8">
+                        <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2 border-b border-white/5 pb-4">
+                            <MessageSquare className="h-5 w-5 text-brand-400" />
+                            Updates & Comments
+                        </h3>
+
+                        <div className="space-y-6 mb-6">
+                            {comments.length === 0 ? (
+                                <p className="text-surface-400 text-sm italic">No comments or updates yet.</p>
+                            ) : (
+                                comments.map(comment => (
+                                    <div key={comment._id} className="bg-surface-800/50 p-4 rounded-xl border border-white/5">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-6 w-6 rounded-full bg-brand-500/20 flex items-center justify-center text-xs font-bold text-brand-400">
+                                                    {comment.authorId.fullName.charAt(0)}
+                                                </div>
+                                                <span className="font-medium text-white text-sm">
+                                                    {comment.authorId.fullName}
+                                                </span>
+                                                {comment.authorId.role !== 'CITIZEN' && (
+                                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-brand-500/10 text-brand-400 border border-brand-500/20">
+                                                        Admin
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="text-xs text-surface-400">
+                                                {new Date(comment.createdAt).toLocaleDateString()} {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                        <p className="text-surface-200 text-sm whitespace-pre-wrap">{comment.text}</p>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <form onSubmit={handlePostComment} className="flex gap-3">
+                            <input
+                                type="text"
+                                value={newComment}
+                                onChange={e => setNewComment(e.target.value)}
+                                placeholder="Add an update or comment..."
+                                className="flex-1 bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            />
+                            <button
+                                type="submit"
+                                disabled={postingComment || !newComment.trim()}
+                                className="flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl transition-all shadow-lg shadow-brand-500/20"
+                            >
+                                {postingComment ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
                 {/* Right Column - Map, Reporter, Votes */}
@@ -179,14 +256,25 @@ export default function IssueDetailPage(props: Props) {
                             <h3 className="font-semibold text-white">Location</h3>
                         </div>
                         <div className="flex-1 relative bg-surface-800">
-                            <div className="absolute inset-0 flex flex-col items-center justify-center text-surface-500 p-4 text-center border-2 border-dashed border-white/5 m-4 rounded-xl">
-                                <MapPin className="h-8 w-8 mb-2 opacity-50 text-brand-500" />
-                                <p className="text-sm font-medium text-white mb-1">Map View Unavailable</p>
-                                <p className="text-xs">Lat: {issue.location.latitude}, Lng: {issue.location.longitude}</p>
-                            </div>
+                            {issue.location?.latitude && issue.location?.longitude ? (
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    className="absolute inset-0 border-0"
+                                    loading="lazy"
+                                    allowFullScreen
+                                    src={`https://maps.google.com/maps?q=${issue.location.latitude},${issue.location.longitude}&t=k&z=16&output=embed`}
+                                ></iframe>
+                            ) : (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-surface-500 p-4 text-center border-2 border-dashed border-white/5 m-4 rounded-xl">
+                                    <MapPin className="h-8 w-8 mb-2 opacity-50 text-brand-500" />
+                                    <p className="text-sm font-medium text-white mb-1">Map View Unavailable</p>
+                                    <p className="text-xs">Location coordinates not provided</p>
+                                </div>
+                            )}
                         </div>
                         <div className="p-4 bg-surface-900/50 border-t border-white/5">
-                            <p className="text-sm font-medium text-white line-clamp-2">{issue.location.address || issue.location.kebele || 'Unknown location'}</p>
+                            <p className="text-sm font-medium text-white line-clamp-2">{issue.location?.address || issue.location?.kebele || 'Unknown location'}</p>
                         </div>
                     </div>
 

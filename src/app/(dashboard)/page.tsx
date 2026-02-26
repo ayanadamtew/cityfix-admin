@@ -24,46 +24,27 @@ export default function DashboardPage() {
     const isSuperAdmin = hasRole(['SUPER_ADMIN']);
 
     const [data, setData] = useState<AnalyticsData | null>(null);
-    const [loading, setLoading] = useState(isSuperAdmin);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (isSuperAdmin) {
-            api.get('/admin/analytics')
-                .then(res => {
-                    setData(res.data);
-                    setLoading(false);
-                })
-                .catch(err => {
-                    console.error('Failed to fetch analytics', err);
-                    // For initial development if backend is not ready, mock some data:
-                    setData({
-                        totalIssues: 154,
-                        byStatus: { Pending: 45, 'In Progress': 32, Resolved: 77 },
-                        byCategory: { Water: 40, Waste: 35, Road: 50, Electricity: 29 },
-                        avgResolutionTimeDays: 2.4,
-                        avgFeedbackRating: 4.2
-                    });
-                    setLoading(false);
+        api.get('/admin/analytics')
+            .then(res => {
+                setData(res.data);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error('Failed to fetch analytics', err);
+                // For initial development if backend is not ready, mock some data:
+                setData({
+                    totalIssues: 154,
+                    byStatus: { Pending: 45, 'In Progress': 32, Resolved: 77 },
+                    byCategory: { Water: 40, Waste: 35, Road: 50, Electricity: 29 },
+                    avgResolutionTimeDays: 2.4,
+                    avgFeedbackRating: 4.2
                 });
-        }
-    }, [isSuperAdmin]);
-
-    if (!isSuperAdmin) {
-        return (
-            <div className="max-w-4xl">
-                <h2 className="text-2xl font-bold text-white mb-2">Welcome back, {user?.fullName}</h2>
-                <p className="text-surface-300 mb-8">Manage issues for the {user?.department} department.</p>
-
-                {/* We'll direct them to issues directly or show a summary here */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="glass-card p-6">
-                        <h3 className="text-lg font-semibold text-white mb-4">Quick Limits</h3>
-                        <p className="text-surface-400">Please navigate to the issues tab to process incoming reports.</p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+                setLoading(false);
+            });
+    }, []);
 
     if (loading) {
         return (
@@ -98,8 +79,12 @@ export default function DashboardPage() {
         <div className="space-y-6 max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight">Overview</h2>
-                    <p className="text-surface-400 text-sm">Real-time analytical metrics for municipality operations.</p>
+                    <h2 className="text-2xl font-bold text-white tracking-tight">
+                        {isSuperAdmin ? 'City Overview' : `${user?.department} Overview`}
+                    </h2>
+                    <p className="text-surface-400 text-sm">
+                        {isSuperAdmin ? 'Real-time analytical metrics for all sectors.' : `Real-time analytical metrics for the ${user?.department} sector.`}
+                    </p>
                 </div>
             </div>
 
@@ -176,8 +161,16 @@ export default function DashboardPage() {
 
                     <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
 
-                    <div className="relative w-full h-full max-w-2xl max-h-[300px] border border-white/10 rounded-2xl bg-surface-950/50 flex items-center justify-center overflow-hidden">
-                        <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at center, transparent 0%, var(--color-surface-950) 100%)' }} />
+                    <div className="relative w-full h-full max-w-2xl min-h-[300px] border border-white/10 rounded-2xl bg-surface-950/50 flex items-center justify-center overflow-hidden">
+                        <iframe
+                            width="100%"
+                            height="100%"
+                            className="absolute inset-0 border-0 opacity-70 mix-blend-luminosity"
+                            loading="lazy"
+                            allowFullScreen
+                            src={`https://maps.google.com/maps?q=Addis+Ababa&t=k&z=12&output=embed`}
+                        ></iframe>
+                        <div className="absolute inset-0 bg-surface-900/40 pointer-events-none" />
 
                         {/* CSS Mock Hotspots */}
                         <div className="absolute top-[30%] left-[40%]">

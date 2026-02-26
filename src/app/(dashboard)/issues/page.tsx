@@ -72,7 +72,7 @@ export default function IssuesPage() {
 
     const filteredIssues = issues.filter(issue => {
         const matchesSearch = issue.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            issue.location.kebele?.toLowerCase().includes(searchTerm.toLowerCase());
+            issue.location?.kebele?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'All' || issue.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
@@ -162,7 +162,7 @@ export default function IssuesPage() {
                                         <td className="px-6 py-4 text-surface-300">
                                             <div className="flex items-center gap-1.5">
                                                 <MapPin className="h-3.5 w-3.5 text-surface-400" />
-                                                {issue.location.kebele || issue.location.address || 'Unknown'}
+                                                {issue.location?.kebele || issue.location?.address || 'Unknown'}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">

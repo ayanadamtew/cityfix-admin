@@ -44,3 +44,11 @@ export interface AnalyticsData {
     avgResolutionTimeDays: number;
     avgFeedbackRating: number;
 }
+
+export interface IssueComment {
+    _id: string;
+    issueId: string;
+    authorId: User;
+    text: string;
+    createdAt: string;
+}

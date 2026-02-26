@@ -20,8 +20,8 @@ export default function Sidebar() {
     const isSuperAdmin = hasRole(['SUPER_ADMIN']);
 
     const links = [
-        ...(isSuperAdmin ? [{ name: 'Dashboard', href: '/', icon: LayoutDashboard }] : []),
-        { name: 'Issues', href: isSuperAdmin ? '/issues' : '/', icon: MapPin },
+        { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+        { name: 'Issues', href: '/issues', icon: MapPin },
         ...(isSuperAdmin ? [
             { name: 'Moderation', href: '/moderation', icon: ShieldAlert },
             { name: 'Users', href: '/users', icon: Users },
@@ -55,8 +55,8 @@ export default function Sidebar() {
                                 key={link.name}
                                 href={link.href}
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative ${isActive
-                                        ? 'bg-brand-500/10 text-brand-400'
-                                        : 'text-surface-300 hover:bg-surface-800 hover:text-white'
+                                    ? 'bg-brand-500/10 text-brand-400'
+                                    : 'text-surface-300 hover:bg-surface-800 hover:text-white'
                                     }`}
                             >
                                 {isActive && (
