@@ -44,6 +44,14 @@ export interface AnalyticsData {
     byCategory: Record<Department, number>;
     avgResolutionTimeDays: number;
     avgFeedbackRating: number;
+    locations: Array<{
+        _id: string;
+        category: Department;
+        status: IssueStatus;
+        urgencyCount: number;
+        location: IssueLocation;
+        createdAt: string;
+    }>;
 }
 
 export interface IssueComment {

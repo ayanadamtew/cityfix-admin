@@ -1,0 +1,40 @@
+
+> cityfix-admin@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Error: Cannot apply unknown utility class `shadow-[0_8px_32px_0_rgba(0,`
+    [2m[at onInvalidCandidate (/home/ayuda/Documents/fyp/cityfix-admin/node_modules/tailwindcss/dist/lib.js:21:1511)][0m
+    [2m[at Ee (/home/ayuda/Documents/fyp/cityfix-admin/node_modules/tailwindcss/dist/lib.js:16:36740)][0m
+    [2m[at /home/ayuda/Documents/fyp/cityfix-admin/node_modules/tailwindcss/dist/lib.js:21:355][0m
+    [2m[at Pr (/home/ayuda/Documents/fyp/cityfix-admin/node_modules/tailwindcss/dist/lib.js:3:1733)][0m
+    [2m[at _ (/home/ayuda/Documents/fyp/cityfix-admin/node_modules/tailwindcss/dist/lib.js:3:1377)][0m
+    [2m[at Te (/home/ayuda/Documents/fyp/cityfix-admin/node_modules/tailwindcss/dist/lib.js:21:172)][0m
+    [2m[at pn (/home/ayuda/Documents/fyp/cityfix-admin/node_modules/tailwindcss/dist/lib.js:38:294)][0m
+    [2m[at async dn (/home/ayuda/Documents/fyp/cityfix-admin/node_modules/tailwindcss/dist/lib.js:38:631)][0m
+    [2m[at async Xr (/home/ayuda/Documents/fyp/cityfix-admin/node_modules/@tailwindcss/node/dist/index.js:10:3417)][0m
+    [2m[at async N (/home/ayuda/Documents/fyp/cityfix-admin/node_modules/@tailwindcss/postcss/dist/index.js:10:3979)][0m
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./src/app/globals.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /home/ayuda/Documents/fyp/cityfix-admin/src/app/globals.css:1:1: Cannot apply unknown utility class `shadow-[0_8px_32px_0_rgba(0,`
+    at Input.error (node_modules/postcss/lib/input.js:135:16) [/home/ayuda/Documents/fyp/cityfix-admin/.next/build/chunks/node_modules_fe693df6._.js:4651:22]
+    at Root.error (node_modules/postcss/lib/node.js:146:32) [/home/ayuda/Documents/fyp/cityfix-admin/.next/build/chunks/node_modules_fe693df6._.js:928:38]
+    [at Object.Once (/home/ayuda/Documents/fyp/cityfix-admin/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
+    at async LazyResult.runAsync (node_modules/postcss/lib/lazy-result.js:293:11) [/home/ayuda/Documents/fyp/cityfix-admin/.next/build/chunks/node_modules_fe693df6._.js:6206:21]
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/home/ayuda/Documents/fyp/cityfix-admin/.next/build/chunks/[root-of-the-server]__51225daf._.js:146:36]
+    at async run (turbopack:///[turbopack-node]/ipc/evaluate.ts:92:23) [/home/ayuda/Documents/fyp/cityfix-admin/.next/build/chunks/[root-of-the-server]__974941ed._.js:443:31]
+
+Import trace:
+  Client Component Browser:
+    ./src/app/globals.css [Client Component Browser]
+    ./src/app/layout.tsx [Server Component]
+
+
+    at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/home/ayuda/Documents/fyp/cityfix-admin/.next/build/chunks/[root-of-the-server]__51225daf._.js:146:36])
+    at async run (turbopack:///[turbopack-node]/ipc/evaluate.ts:92:23) [/home/ayuda/Documents/fyp/cityfix-admin/.next/build/chunks/[root-of-the-server]__974941ed._.js:443:31])

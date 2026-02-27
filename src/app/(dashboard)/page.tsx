@@ -17,7 +17,12 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
-// Mapbox fallback used instead of react-map-gl
+import dynamic from 'next/dynamic';
+
+const DashboardMap = dynamic(() => import('@/components/DashboardMap'), {
+    ssr: false,
+    loading: () => <Skeleton className="w-full h-full min-h-[400px]" />
+});
 
 export default function DashboardPage() {
     const { hasRole, user } = useAuth();
@@ -86,12 +91,13 @@ export default function DashboardPage() {
                 {kpis.map((kpi, index) => {
                     const Icon = kpi.icon;
                     return (
-                        <div key={index} className="glass-card p-6 flex flex-col items-start hover:bg-white/[0.08] transition-colors group">
-                            <div className={`p-3 rounded-xl bg-surface-900 shadow-inner mb-4 border border-white/5`}>
-                                <Icon className={`h-6 w-6 ${kpi.color}`} />
+                        <div key={index} className="glass-card p-6 flex flex-col items-start hover:bg-surface-800/80 transition-all duration-300 group hover:shadow-[0_0_25px_rgba(20,184,166,0.15)] hover:-translate-y-1 relative overflow-hidden border border-white/[0.05]">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 rounded-full blur-3xl -mr-10 -mt-10 transition-all duration-500 group-hover:bg-brand-500/20" />
+                            <div className={`p-3 rounded-xl bg-surface-950 shadow-inner mb-4 border border-white/[0.05] relative z-10`}>
+                                <Icon className={`h-6 w-6 ${kpi.color} drop-shadow-[0_0_8px_currentColor]`} />
                             </div>
-                            <p className="text-surface-400 text-sm font-medium mb-1">{kpi.label}</p>
-                            <h4 className="text-3xl font-bold text-white">{kpi.value}</h4>
+                            <p className="text-surface-400 text-sm font-medium mb-1 relative z-10">{kpi.label}</p>
+                            <h4 className="text-3xl font-bold text-white relative z-10 glow-text">{kpi.value}</h4>
                         </div>
                     );
                 })}
@@ -105,13 +111,15 @@ export default function DashboardPage() {
                         {/* Chart implementation will go here */}
                         <div className="flex items-end justify-center gap-4 h-full w-full pb-4 px-4">
                             {Object.entries(data.byCategory).map(([cat, count]) => (
-                                <div key={cat} className="flex flex-col items-center flex-1 gap-3">
-                                    <span className="text-sm font-bold text-brand-300">{count}</span>
+                                <div key={cat} className="flex flex-col items-center flex-1 gap-3 group relative">
+                                    <span className="text-sm font-bold text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-[0_0_8px_currentColor] absolute -top-8">{count}</span>
                                     <div
-                                        className="w-full bg-brand-500 rounded-t-lg transition-all duration-1000 ease-out min-h-[20px]"
+                                        className="w-full bg-gradient-to-t from-brand-600 to-brand-400 rounded-t-lg transition-all duration-1000 ease-out min-h-[20px] shadow-[0_0_15px_rgba(20,184,166,0.2)] group-hover:shadow-[0_0_20px_rgba(20,184,166,0.6)] group-hover:from-brand-500 group-hover:to-brand-300 relative overflow-hidden"
                                         style={{ height: `${(count / Math.max(...Object.values(data.byCategory))) * 200}px` }}
-                                    />
-                                    <span className="text-xs text-surface-400 font-medium rotate-45 md:rotate-0 mt-2">{cat}</span>
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[150%] group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                                    </div>
+                                    <span className="text-xs text-surface-400 font-medium rotate-45 md:rotate-0 mt-2 transition-colors group-hover:text-surface-200">{cat}</span>
                                 </div>
                             ))}
                         </div>
@@ -123,11 +131,12 @@ export default function DashboardPage() {
                     <div className="flex bg-surface-900/50 rounded-xl items-center justify-center p-8 h-[300px] border border-white/5 relative">
                         {/* Very simple mock pie chart using conic gradient */}
                         <div
-                            className="w-48 h-48 rounded-full shadow-2xl mr-8"
-                            style={{
+                            className="w-48 h-48 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(0,0,0,0.5)] mr-8 relative overflow-hidden border border-white/5"
+                        >
+                            <div className="w-full h-full drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" style={{
                                 background: `conic-gradient(var(--color-warning) 0% 29%, var(--color-info) 29% 50%, var(--color-success) 50% 100%)`
-                            }}
-                        />
+                            }}></div>
+                        </div>
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-3 h-3 rounded-full bg-warning" />
@@ -147,43 +156,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Map Hotspots */}
-            <div className="glass-card p-6 min-h-[500px] flex flex-col">
-                <h3 className="text-lg font-semibold text-white mb-2">Geographic Report Hotspots</h3>
-                <p className="text-sm text-surface-400 mb-6">Density of citizen issue reports across municipality zones.</p>
-                <div className="flex-1 rounded-xl overflow-hidden bg-surface-900 border border-white/5 relative min-h-[400px] flex items-center justify-center p-8">
-
-                    <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
-
-                    <div className="relative w-full h-full max-w-2xl min-h-[300px] border border-white/10 rounded-2xl bg-surface-950/50 flex items-center justify-center overflow-hidden">
-                        <iframe
-                            width="100%"
-                            height="100%"
-                            className="absolute inset-0 border-0 opacity-70 mix-blend-luminosity"
-                            loading="lazy"
-                            allowFullScreen
-                            src={`https://maps.google.com/maps?q=Addis+Ababa&t=k&z=12&output=embed`}
-                        ></iframe>
-                        <div className="absolute inset-0 bg-surface-900/40 pointer-events-none" />
-
-                        {/* CSS Mock Hotspots */}
-                        <div className="absolute top-[30%] left-[40%]">
-                            <div className="w-8 h-8 rounded-full bg-danger/50 animate-pulse flex items-center justify-center border border-danger shadow-[0_0_20px_rgba(239,68,68,0.5)]">
-                                <span className="text-white text-xs font-bold">12</span>
-                            </div>
-                        </div>
-                        <div className="absolute top-[60%] left-[25%]">
-                            <div className="w-6 h-6 rounded-full bg-warning/50 animate-pulse flex items-center justify-center border border-warning shadow-[0_0_15px_rgba(245,158,11,0.5)]">
-                                <span className="text-white text-[10px] font-bold">5</span>
-                            </div>
-                        </div>
-                        <div className="absolute top-[45%] right-[30%]">
-                            <div className="w-12 h-12 rounded-full bg-danger/80 animate-pulse flex items-center justify-center border border-danger shadow-[0_0_30px_rgba(239,68,68,0.8)] delay-150">
-                                <span className="text-white text-sm font-bold">24</span>
-                            </div>
-                        </div>
-
-                        <p className="text-surface-500 font-medium text-sm tracking-widest uppercase relative z-10 opacity-50">City Zone Map Overview</p>
-                    </div>
+            <div className="glass-card p-6 min-h-[500px] flex flex-col mt-4 border border-white/[0.05] relative overflow-hidden group">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mt-32 transition-all duration-700 group-hover:bg-brand-500/10" />
+                <h3 className="text-lg font-semibold text-white mb-2 relative z-10 glow-text">Geographic Report Hotspots</h3>
+                <p className="text-sm text-surface-400 mb-6 relative z-10">Density of citizen issue reports across municipality zones.</p>
+                <div className="flex-1 rounded-xl overflow-hidden bg-surface-950 border border-white/[0.1] relative min-h-[400px] shadow-[0_0_30px_rgba(0,0,0,0.5)] z-10">
+                    <DashboardMap locations={data.locations} />
                 </div>
             </div>
         </div>
