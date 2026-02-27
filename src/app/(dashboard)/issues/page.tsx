@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { io } from 'socket.io-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { IssueReport } from '@/types';
 import api from '@/lib/api';
@@ -51,7 +52,33 @@ export default function IssuesPage() {
                 ]);
             })
             .finally(() => setLoading(false));
-    }, []);
+
+        // Setup Socket.IO connection
+        const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000');
+
+        socket.on('new_issue', (issue: IssueReport) => {
+            // Only add to table if Super Admin or if it matches the Sector Admin's department
+            if (user?.role === 'SUPER_ADMIN' || issue.category === user?.department) {
+                setIssues(prev => [issue, ...prev]);
+            }
+        });
+
+        socket.on('vote_updated', ({ issueId, urgencyCount }) => {
+            setIssues(prev => prev.map(i =>
+                i._id === issueId ? { ...i, urgencyCount } : i
+            ));
+        });
+
+        socket.on('issue_status_changed', ({ issueId, status }) => {
+            setIssues(prev => prev.map(i =>
+                i._id === issueId ? { ...i, status } : i
+            ));
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, [user]);
 
     const StatusBadge = ({ status }: { status: string }) => {
         const config = {
