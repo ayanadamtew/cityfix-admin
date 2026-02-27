@@ -3,10 +3,11 @@
 import React, { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { io } from 'socket.io-client';
 import { useAuth } from '@/contexts/AuthContext';
-import { IssueReport, User, IssueComment } from '@/types';
+import { IssueReport, User, IssueComment, IssueFeedback } from '@/types';
 import api from '@/lib/api';
-import { ChevronLeft, MapPin, User as UserIcon, Calendar, Clock, Image as ImageIcon, CheckCircle2, AlertTriangle, Loader2, MessageSquare, Send } from 'lucide-react';
+import { ChevronLeft, MapPin, User as UserIcon, Calendar, Clock, Image as ImageIcon, CheckCircle2, AlertTriangle, Loader2, MessageSquare, Send, Star } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 // Mapbox fallback used instead of react-map-gl which fails in certain node/turbopack configs
 
@@ -23,16 +24,18 @@ export default function IssueDetailPage(props: Props) {
 
     const [issue, setIssue] = useState<IssueReport | null>(null);
     const [comments, setComments] = useState<IssueComment[]>([]);
+    const [feedback, setFeedback] = useState<IssueFeedback | null>(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [newComment, setNewComment] = useState('');
     const [postingComment, setPostingComment] = useState(false);
 
     useEffect(() => {
-        api.get<{ issue: IssueReport, comments: IssueComment[] }>(`/issues/${id}`)
+        api.get<{ issue: IssueReport, comments: IssueComment[], feedback?: IssueFeedback }>(`/issues/${id}`)
             .then(res => {
                 setIssue(res.data.issue);
                 setComments(res.data.comments || []);
+                setFeedback(res.data.feedback || null);
             })
             .catch(err => {
                 console.error('Failed to load issue', err);
@@ -51,6 +54,35 @@ export default function IssueDetailPage(props: Props) {
                 });
             })
             .finally(() => setLoading(false));
+
+        // Setup Socket.IO connection
+        const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000');
+
+        socket.on('vote_updated', (data) => {
+            if (data.issueId === id) {
+                setIssue(prev => prev ? { ...prev, urgencyCount: data.urgencyCount } : prev);
+            }
+        });
+
+        socket.on('issue_status_changed', (data) => {
+            if (data.issueId === id) {
+                setIssue(prev => prev ? { ...prev, status: data.status } : prev);
+            }
+        });
+
+        socket.on('new_comment', (data) => {
+            if (data.issueId === id) {
+                // Ensure we don't accidentally add the same comment twice if we're the ones who just posted it
+                setComments(prev => {
+                    if (prev.some(c => c._id === data.comment._id)) return prev;
+                    return [...prev, data.comment];
+                });
+            }
+        });
+
+        return () => {
+            socket.disconnect();
+        };
     }, [id]);
 
     const updateStatus = async (newStatus: 'Pending' | 'In Progress' | 'Resolved') => {
@@ -131,39 +163,41 @@ export default function IssueDetailPage(props: Props) {
                     </p>
                 </div>
 
-                {/* Status Actions (Visible to Sector Admin assigned or Super Admin) */}
-                <div className="glass-card p-4 sm:p-2 sm:px-4 flex sm:flex-row flex-col items-center gap-4 border-brand-500/20 bg-brand-500/5">
-                    <span className="text-sm font-semibold text-white mr-2">Update Status:</span>
-                    {updating ? (
-                        <div className="px-4 py-2 flex items-center justify-center">
-                            <Loader2 className="h-5 w-5 animate-spin text-brand-400" />
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2">
-                            <button
-                                disabled={issue.status === 'Pending'}
-                                onClick={() => updateStatus('Pending')}
-                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${issue.status === 'Pending' ? 'bg-warning/20 text-warning border border-warning/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700'}`}
-                            >
-                                Pending
-                            </button>
-                            <button
-                                disabled={issue.status === 'In Progress'}
-                                onClick={() => updateStatus('In Progress')}
-                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${issue.status === 'In Progress' ? 'bg-info/20 text-info border border-info/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700'}`}
-                            >
-                                In Progress
-                            </button>
-                            <button
-                                disabled={issue.status === 'Resolved'}
-                                onClick={() => updateStatus('Resolved')}
-                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${issue.status === 'Resolved' ? 'bg-success/20 text-success border border-success/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700'}`}
-                            >
-                                Resolved
-                            </button>
-                        </div>
-                    )}
-                </div>
+                {/* Status Actions (Visible to Sector Admin assigned ONLY) */}
+                {user?.role !== 'SUPER_ADMIN' && (
+                    <div className="glass-card p-4 sm:p-2 sm:px-4 flex sm:flex-row flex-col items-center gap-4 border-brand-500/20 bg-brand-500/5">
+                        <span className="text-sm font-semibold text-white mr-2">Update Status:</span>
+                        {updating ? (
+                            <div className="px-4 py-2 flex items-center justify-center">
+                                <Loader2 className="h-5 w-5 animate-spin text-brand-400" />
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    disabled={issue.status === 'Pending'}
+                                    onClick={() => updateStatus('Pending')}
+                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${issue.status === 'Pending' ? 'bg-warning/20 text-warning border border-warning/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700'}`}
+                                >
+                                    Pending
+                                </button>
+                                <button
+                                    disabled={issue.status === 'In Progress'}
+                                    onClick={() => updateStatus('In Progress')}
+                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${issue.status === 'In Progress' ? 'bg-info/20 text-info border border-info/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700'}`}
+                                >
+                                    In Progress
+                                </button>
+                                <button
+                                    disabled={issue.status === 'Resolved'}
+                                    onClick={() => updateStatus('Resolved')}
+                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${issue.status === 'Resolved' ? 'bg-success/20 text-success border border-success/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700'}`}
+                                >
+                                    Resolved
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -322,6 +356,31 @@ export default function IssueDetailPage(props: Props) {
                             </div>
                         </div>
                     </div>
+
+                    {/* Feedback Section (Visible if resolved and feedback exists) */}
+                    {feedback && (
+                        <div className="glass-card p-6 border-brand-500/20 shadow-[0_0_20px_rgba(99,102,241,0.05)]">
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2 border-b border-white/5 pb-4">
+                                <Star className="h-5 w-5 text-warning" />
+                                Citizen Feedback
+                            </h3>
+                            <div className="flex items-center gap-1 mb-3">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                        key={star}
+                                        className={`h-5 w-5 ${star <= feedback.rating ? 'text-warning fill-warning' : 'text-surface-600'}`}
+                                    />
+                                ))}
+                            </div>
+                            {feedback.comment ? (
+                                <p className="text-sm text-surface-200 mt-2 italic bg-surface-800/50 p-3 rounded-xl border border-white/5">
+                                    &quot;{feedback.comment}&quot;
+                                </p>
+                            ) : (
+                                <p className="text-xs text-surface-400 mt-2">No written review provided.</p>
+                            )}
+                        </div>
+                    )}
 
                 </div>
             </div>

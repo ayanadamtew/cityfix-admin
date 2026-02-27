@@ -11,6 +11,7 @@ export interface User {
     role: Role;
     department?: Department;
     fcmToken?: string | null;
+    isDisabled?: boolean;
     createdAt: string;
     updatedAt: string;
 }
@@ -50,5 +51,14 @@ export interface IssueComment {
     issueId: string;
     authorId: User;
     text: string;
+    createdAt: string;
+}
+
+export interface IssueFeedback {
+    _id: string;
+    issueId: string;
+    citizenId: User;
+    rating: number;
+    comment?: string;
     createdAt: string;
 }

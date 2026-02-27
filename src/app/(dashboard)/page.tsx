@@ -34,14 +34,7 @@ export default function DashboardPage() {
             })
             .catch(err => {
                 console.error('Failed to fetch analytics', err);
-                // For initial development if backend is not ready, mock some data:
-                setData({
-                    totalIssues: 154,
-                    byStatus: { Pending: 45, 'In Progress': 32, Resolved: 77 },
-                    byCategory: { Water: 40, Waste: 35, Road: 50, Electricity: 29 },
-                    avgResolutionTimeDays: 2.4,
-                    avgFeedbackRating: 4.2
-                });
+                // Removed mock data fallback so true errors are visible via the EmptyState
                 setLoading(false);
             });
     }, []);

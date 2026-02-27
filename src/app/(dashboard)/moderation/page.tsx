@@ -8,6 +8,7 @@ import { ShieldAlert, Trash2, CheckCircle, ExternalLink, RefreshCw } from 'lucid
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import Link from 'next/link';
+import { io } from 'socket.io-client';
 
 interface ReportedPost {
     _id: string;
@@ -33,6 +34,17 @@ export default function ModerationPage() {
                     console.error('Failed to load flagged content:', err);
                 })
                 .finally(() => setLoading(false));
+
+            // Setup real-time listeners
+            const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000');
+
+            socket.on('new_moderation_report', (report: ReportedPost) => {
+                setReports(prev => [report, ...prev]);
+            });
+
+            return () => {
+                socket.disconnect();
+            };
         } else {
             setLoading(false);
         }
@@ -109,7 +121,7 @@ export default function ModerationPage() {
 
                                 {/* Content Preview */}
                                 <div className="flex-1 bg-surface-900/50 rounded-lg p-4 border border-white/5">
-                                    <p className="text-surface-200 text-sm line-clamp-2 mb-3">"{report.issueId.description}"</p>
+                                    <p className="text-surface-200 text-sm line-clamp-2 mb-3">&quot;{report.issueId.description}&quot;</p>
                                     <Link
                                         href={`/issues/${report.issueId._id}`}
                                         className="inline-flex items-center gap-1.5 text-brand-400 hover:text-brand-300 transition-colors text-xs font-semibold uppercase tracking-wider"

@@ -17,6 +17,7 @@ export default function UsersPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [actioning, setActioning] = useState<string | null>(null);
 
     const [admins, setAdmins] = useState<User[]>([]);
     const [citizens, setCitizens] = useState<User[]>([]);
@@ -47,6 +48,22 @@ export default function UsersPage() {
         const res = await api.post('/admin/users', adminData);
         // Append to local state list
         setAdmins(prev => [res.data.user, ...prev]);
+    };
+
+    const handleToggleStatus = async (userId: string, currentStatus: boolean | undefined) => {
+        setActioning(userId);
+        try {
+            const newStatus = !currentStatus;
+            await api.put(`/admin/users/${userId}/status`, { isDisabled: newStatus });
+
+            // Update local state (check both lists since user could be in either)
+            setCitizens(prev => prev.map(c => c._id === userId ? { ...c, isDisabled: newStatus } : c));
+            setAdmins(prev => prev.map(a => a._id === userId ? { ...a, isDisabled: newStatus } : a));
+        } catch (error) {
+            console.error('Failed to toggle user status:', error);
+        } finally {
+            setActioning(null);
+        }
     };
 
     if (!isSuperAdmin) {
@@ -112,8 +129,20 @@ export default function UsersPage() {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button className="p-1.5 text-surface-400 hover:text-white transition-colors"><Key className="h-4 w-4" /></button>
-                                            <button className="p-1.5 text-surface-400 hover:text-danger transition-colors"><UserX className="h-4 w-4" /></button>
+                                            {admin.role !== 'SUPER_ADMIN' ? (
+                                                <button
+                                                    onClick={() => handleToggleStatus(admin._id, admin.isDisabled)}
+                                                    disabled={actioning === admin._id}
+                                                    className={`px-3 py-1 text-xs font-medium rounded border transition-colors disabled:opacity-50 ${admin.isDisabled
+                                                        ? 'border-success/30 text-success hover:bg-success/10'
+                                                        : 'border-danger/30 text-danger hover:bg-danger/10'
+                                                        }`}
+                                                >
+                                                    {actioning === admin._id ? 'Updating...' : (admin.isDisabled ? 'Activate' : 'Suspend')}
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs text-surface-400 font-medium px-2">Super Admin</span>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -165,8 +194,15 @@ export default function UsersPage() {
                                         {new Date(cit.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button className="px-3 py-1 text-xs font-medium rounded border border-danger/30 text-danger hover:bg-danger/10 transition-colors">
-                                            Suspend
+                                        <button
+                                            onClick={() => handleToggleStatus(cit._id, cit.isDisabled)}
+                                            disabled={actioning === cit._id}
+                                            className={`px-3 py-1 text-xs font-medium rounded border transition-colors disabled:opacity-50 ${cit.isDisabled
+                                                ? 'border-success/30 text-success hover:bg-success/10'
+                                                : 'border-danger/30 text-danger hover:bg-danger/10'
+                                                }`}
+                                        >
+                                            {actioning === cit._id ? 'Updating...' : (cit.isDisabled ? 'Activate' : 'Suspend')}
                                         </button>
                                     </td>
                                 </tr>
