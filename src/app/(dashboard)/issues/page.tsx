@@ -6,7 +6,7 @@ import { io } from 'socket.io-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { IssueReport } from '@/types';
 import api from '@/lib/api';
-import { MapPin, Eye, Search, Filter, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { MapPin, Eye, Search, Filter, AlertTriangle, CheckCircle2, Clock, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 
@@ -16,6 +16,10 @@ export default function IssuesPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('All');
+    const [sortConfig, setSortConfig] = useState<{ key: keyof IssueReport; direction: 'asc' | 'desc' }>({
+        key: 'urgencyCount',
+        direction: 'desc'
+    });
 
     useEffect(() => {
         // The endpoint `/api/admin/issues` already filters by role backend-side.
@@ -97,12 +101,37 @@ export default function IssuesPage() {
         );
     };
 
-    const filteredIssues = issues.filter(issue => {
-        const matchesSearch = issue.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            issue.location?.kebele?.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'All' || issue.status === statusFilter;
-        return matchesSearch && matchesStatus;
-    });
+    const sortedIssues = [...issues]
+        .filter(issue => {
+            const matchesSearch = issue.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                issue.location?.kebele?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === 'All' || issue.status === statusFilter;
+            return matchesSearch && matchesStatus;
+        })
+        .sort((a, b) => {
+            if (a[sortConfig.key] < b[sortConfig.key]) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
+            }
+            if (a[sortConfig.key] > b[sortConfig.key]) {
+                return sortConfig.direction === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+
+    const requestSort = (key: keyof IssueReport) => {
+        let direction: 'asc' | 'desc' = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const SortIcon = ({ columnKey }: { columnKey: keyof IssueReport }) => {
+        if (sortConfig.key !== columnKey) return <ArrowUpDown className="h-3.5 w-3.5 opacity-30" />;
+        return sortConfig.direction === 'asc'
+            ? <ChevronUp className="h-4 w-4 text-brand-500" />
+            : <ChevronDown className="h-4 w-4 text-brand-500" />;
+    };
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
@@ -154,7 +183,7 @@ export default function IssuesPage() {
                         <Skeleton className="h-12 w-full" />
                         <Skeleton className="h-12 w-full" />
                     </div>
-                ) : filteredIssues.length === 0 ? (
+                ) : sortedIssues.length === 0 ? (
                     <EmptyState
                         icon={MapPin}
                         title="No Issues Found"
@@ -170,12 +199,20 @@ export default function IssuesPage() {
                                     <th className="px-6 py-4 font-semibold tracking-wider">Description</th>
                                     <th className="px-6 py-4 font-semibold tracking-wider">Location</th>
                                     <th className="px-6 py-4 font-semibold tracking-wider">Status</th>
-                                    <th className="px-6 py-4 font-semibold tracking-wider">Votes</th>
+                                    <th
+                                        className="px-6 py-4 font-semibold tracking-wider cursor-pointer hover:text-white transition-colors group"
+                                        onClick={() => requestSort('urgencyCount')}
+                                    >
+                                        <div className="flex items-center gap-1.5">
+                                            Votes
+                                            <SortIcon columnKey="urgencyCount" />
+                                        </div>
+                                    </th>
                                     <th className="px-6 py-4 font-semibold tracking-wider text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {filteredIssues.map((issue) => (
+                                {sortedIssues.map((issue) => (
                                     <tr key={issue._id} className="hover:bg-white/[0.02] transition-colors group">
                                         <td className="px-6 py-4">
                                             <span className="font-medium text-surface-300">#{issue._id.substring(issue._id.length - 6)}</span>
