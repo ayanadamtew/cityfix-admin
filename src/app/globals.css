@@ -4,32 +4,39 @@
 @theme {
   --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
 
-  /* Premium Dark Theme Core Colors - Emerald Accent */
-  --color-brand-50: #f0fdfa;
-  --color-brand-100: #ccfbf1;
-  --color-brand-200: #99f6e4;
-  --color-brand-300: #5eead4;
-  --color-brand-400: #2dd4bf;
-  --color-brand-500: #14b8a6;
-  /* Primary Teal/Emerald */
-  --color-brand-600: #0d9488;
-  --color-brand-700: #0f766e;
-  --color-brand-800: #115e59;
-  --color-brand-900: #134e4a;
-  --color-brand-950: #042f2e;
+  /* Premium Dark Theme Core Colors - Soft Blue/Slate Accent */
+  --color-brand-50: #f8fafc;
+  --color-brand-100: #f1f5f9;
+  --color-brand-200: #e2e8f0;
+  --color-brand-300: #cbd5e1;
+  --color-brand-400: #94a3b8;
+  --color-brand-500: #436191;
+  /* Primary Accent Blue */
+  --color-brand-600: #30476a;
+  /* Dark Accent Blue */
+  --color-brand-700: #1e293b;
+  --color-brand-800: #0f172a;
+  --color-brand-900: #020617;
+  --color-brand-950: #000000;
 
-  /* Premium Obsidian Surface scale */
-  --color-surface-50: #fcfcfc;
-  --color-surface-100: #f0f0f0;
-  --color-surface-200: #e0e0e0;
-  --color-surface-300: #b3b3b3;
-  --color-surface-400: #808080;
-  --color-surface-500: #4d4d4d;
-  --color-surface-600: #333333;
-  --color-surface-800: #1a1a1a;
-  --color-surface-900: #0f0f0f;
-  --color-surface-950: #050505;
-  /* True Obsidian Background */
+  /* Premium Light Theme Surface scale (Inverted to make dark mode look light) */
+  --color-surface-50: #020617;
+  --color-surface-100: #0f172a;
+  --color-surface-200: #1e293b;
+  --color-surface-300: #334155;
+  --color-surface-400: #475569;
+  --color-surface-500: #64748b;
+  --color-surface-600: #94a3b8;
+  --color-surface-800: #e2e8f0;
+  --color-surface-900: #f1f5f9;
+  --color-surface-950: #ffffff;
+
+  /* Override Tailwind's default white/black to invert hardcoded classes safely */
+  --color-white: #0f172a;
+  /* Make text-white act as dark slate text */
+  --color-black: #ffffff;
+  /* Make text-black act as white text */
+
 
   /* Semantic Colors - Kept vibrant for contrast against obsidian */
   --color-success: #10b981;
@@ -60,8 +67,8 @@
     background-color: var(--background);
     color: var(--foreground);
     /* Adding subtle mesh gradient overlay for premium feel */
-    background-image: radial-gradient(circle at 15% 50%, rgba(20, 184, 166, 0.03), transparent 25%),
-      radial-gradient(circle at 85% 30%, rgba(45, 212, 191, 0.02), transparent 25%);
+    background-image: radial-gradient(circle at 15% 50%, rgba(67, 97, 145, 0.05), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(148, 163, 184, 0.05), transparent 25%);
     background-origin: border-box;
     background-attachment: fixed;
     @apply antialiased transition-colors duration-300;
@@ -91,7 +98,8 @@
   }
 
   .glow-text {
-    text-shadow: 0 0 20px rgba(45, 212, 191, 0.5);
+    text-shadow: 0 0 20px rgba(67, 97, 145, 0.15);
+    /* Soft blue glow */
   }
 }
 
