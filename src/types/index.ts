@@ -3,7 +3,8 @@ export type Department = 'Water' | 'Waste' | 'Road' | 'Electricity';
 export type IssueStatus = 'Pending' | 'In Progress' | 'Resolved';
 
 export interface User {
-    _id: string;
+    id?: string;
+    _id?: string;
     firebaseUid: string;
     email: string;
     fullName: string;
@@ -24,8 +25,10 @@ export interface IssueLocation {
 }
 
 export interface IssueReport {
-    _id: string;
-    citizenId: User | string;
+    id?: string;
+    _id?: string;
+    citizenId?: User | string;
+    citizen?: User | string;
     assignedAdminId?: User | string;
     category: Department;
     description: string;
@@ -45,7 +48,8 @@ export interface AnalyticsData {
     avgResolutionTimeDays: number;
     avgFeedbackRating: number;
     locations: Array<{
-        _id: string;
+        id?: string;
+        _id?: string;
         category: Department;
         status: IssueStatus;
         urgencyCount: number;
@@ -55,15 +59,18 @@ export interface AnalyticsData {
 }
 
 export interface IssueComment {
-    _id: string;
+    id?: string;
+    _id?: string;
     issueId: string;
-    authorId: User;
+    authorId?: User;
+    author?: User;
     text: string;
     createdAt: string;
 }
 
 export interface IssueFeedback {
-    _id: string;
+    id?: string;
+    _id?: string;
     issueId: string;
     citizenId: User;
     rating: number;

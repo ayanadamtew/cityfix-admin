@@ -94,7 +94,7 @@ export default function DashboardMap({ locations }: DashboardMapProps) {
 
                     return (
                         <Marker
-                            key={loc._id}
+                            key={loc.id ?? loc._id}
                             position={[loc.location.latitude!, loc.location.longitude!]}
                             icon={createCategoryIcon(loc.category, categoryColors[loc.category] || '#94a3b8')}
                         >
@@ -112,7 +112,7 @@ export default function DashboardMap({ locations }: DashboardMapProps) {
                                         </span>
                                     </div>
                                     <h4 className="font-semibold text-sm mb-1 text-surface-900 border-b border-surface-200 pb-2">
-                                        Issue #{loc._id.substring(loc._id.length - 6).toUpperCase()}
+                                        {(() => { const id = String(loc.id ?? loc._id ?? ''); return `Issue #${id.substring(Math.max(0, id.length - 6)).toUpperCase() || 'N/A'}`; })()}
                                     </h4>
                                     <div className="flex items-center text-xs text-surface-600 mt-2 gap-1 font-medium">
                                         <Activity className="w-3 h-3 text-danger" />

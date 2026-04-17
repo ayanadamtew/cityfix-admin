@@ -57,11 +57,12 @@ export default function IssuesPage() {
             })
             .finally(() => setLoading(false));
 
-        // Setup Socket.IO connection
-        const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000');
+        // Setup Socket.IO connection only if backend is explicitly configured
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        if (!apiUrl) return; // Skip socket in dev if no backend socket server
+        const socket = io(apiUrl);
 
         socket.on('new_issue', (issue: IssueReport) => {
-            // Only add to table if Super Admin or if it matches the Sector Admin's department
             if (user?.role === 'SUPER_ADMIN' || issue.category === user?.department) {
                 setIssues(prev => [issue, ...prev]);
             }
@@ -69,13 +70,13 @@ export default function IssuesPage() {
 
         socket.on('vote_updated', ({ issueId, urgencyCount }) => {
             setIssues(prev => prev.map(i =>
-                i._id === issueId ? { ...i, urgencyCount } : i
+                (i.id ?? i._id) === issueId ? { ...i, urgencyCount } : i
             ));
         });
 
         socket.on('issue_status_changed', ({ issueId, status }) => {
             setIssues(prev => prev.map(i =>
-                i._id === issueId ? { ...i, status } : i
+                (i.id ?? i._id) === issueId ? { ...i, status } : i
             ));
         });
 
@@ -214,10 +215,12 @@ export default function IssuesPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {sortedIssues.map((issue) => (
-                                    <tr key={issue._id} className="hover:bg-white/[0.02] transition-colors group">
+                                {sortedIssues.map((issue) => {
+                                    const issueId = issue.id ?? issue._id ?? '';
+                                    return (
+                                    <tr key={issueId} className="hover:bg-white/[0.02] transition-colors group">
                                         <td className="px-6 py-4">
-                                            <span className="font-medium text-surface-300">#{issue._id.substring(issue._id.length - 6)}</span>
+                                            <span className="font-medium text-surface-300">#{String(issueId).slice(-6)}</span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-white font-medium">{issue.category}</span>
@@ -242,7 +245,7 @@ export default function IssuesPage() {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <Link
-                                                href={`/issues/${issue._id}`}
+                                                href={`/issues/${issueId}`}
                                                 className="inline-flex items-center justify-center p-2 rounded-lg text-surface-400 hover:text-white hover:bg-surface-800 transition-colors"
                                                 title="View Details"
                                             >
@@ -250,7 +253,8 @@ export default function IssuesPage() {
                                             </Link>
                                         </td>
                                     </tr>
-                                ))}
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

@@ -55,8 +55,10 @@ export default function IssueDetailPage(props: Props) {
             })
             .finally(() => setLoading(false));
 
-        // Setup Socket.IO connection
-        const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000');
+        // Setup Socket.IO connection only if backend is explicitly configured
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        if (!apiUrl) return;
+        const socket = io(apiUrl);
 
         socket.on('vote_updated', (data) => {
             if (data.issueId === id) {
@@ -72,9 +74,9 @@ export default function IssueDetailPage(props: Props) {
 
         socket.on('new_comment', (data) => {
             if (data.issueId === id) {
-                // Ensure we don't accidentally add the same comment twice if we're the ones who just posted it
                 setComments(prev => {
-                    if (prev.some(c => c._id === data.comment._id)) return prev;
+                    const cId = data.comment.id ?? data.comment._id;
+                    if (prev.some(c => (c.id ?? c._id) === cId)) return prev;
                     return [...prev, data.comment];
                 });
             }
@@ -152,7 +154,7 @@ export default function IssueDetailPage(props: Props) {
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
-                        <h2 className="text-3xl font-bold text-white tracking-tight">Report #{issue._id.substring(issue._id.length - 6)}</h2>
+                        <h2 className="text-3xl font-bold text-white tracking-tight">Report #{String(issue.id ?? issue._id ?? '').slice(-6)}</h2>
                         <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-500/10 text-brand-400 border border-brand-500/20">
                             {issue.category}
                         </span>
@@ -236,17 +238,20 @@ export default function IssueDetailPage(props: Props) {
                             {comments.length === 0 ? (
                                 <p className="text-surface-400 text-sm italic">No comments or updates yet.</p>
                             ) : (
-                                comments.map(comment => (
-                                    <div key={comment._id} className="bg-surface-800/50 p-4 rounded-xl border border-white/5">
+                                comments.map(comment => {
+                                    const cId = comment.id ?? comment._id;
+                                    const author = (comment as any).author ?? comment.authorId as any;
+                                    return (
+                                    <div key={cId} className="bg-surface-800/50 p-4 rounded-xl border border-white/5">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex items-center gap-2">
                                                 <div className="h-6 w-6 rounded-full bg-brand-500/20 flex items-center justify-center text-xs font-bold text-brand-400">
-                                                    {comment.authorId.fullName.charAt(0)}
+                                                    {author?.fullName?.charAt(0) ?? '?'}
                                                 </div>
                                                 <span className="font-medium text-white text-sm">
-                                                    {comment.authorId.fullName}
+                                                    {author?.fullName ?? 'Unknown'}
                                                 </span>
-                                                {comment.authorId.role !== 'CITIZEN' && (
+                                                {author?.role && author.role !== 'CITIZEN' && (
                                                     <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-brand-500/10 text-brand-400 border border-brand-500/20">
                                                         Admin
                                                     </span>
@@ -258,7 +263,8 @@ export default function IssueDetailPage(props: Props) {
                                         </div>
                                         <p className="text-surface-200 text-sm whitespace-pre-wrap">{comment.text}</p>
                                     </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
 

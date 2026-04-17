@@ -2,10 +2,12 @@
 
 import React from 'react';
 import { usePathname } from 'next/navigation';
-import { Bell, Search, Menu } from 'lucide-react';
+import { Bell, Search, Menu, Moon, Sun } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function Header() {
     const pathname = usePathname();
+    const { theme, toggleTheme } = useTheme();
 
     // Very simple breadcrumb logic for header title
     const title = pathname === '/'
@@ -22,7 +24,7 @@ export default function Header() {
                 <h1 className="text-xl font-semibold text-white tracking-tight glow-text">{title}</h1>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
                 <div className="relative hidden md:block group">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <Search className="h-4 w-4 text-surface-400 group-focus-within:text-brand-400 transition-colors drop-shadow" />
@@ -30,9 +32,21 @@ export default function Header() {
                     <input
                         type="text"
                         placeholder="Search issues..."
-                        className="w-64 bg-surface-900/50 border border-white/[0.05] shadow-inner rounded-full py-2 pl-10 pr-4 text-sm text-surface-100 placeholder-surface-400 focus:outline-none focus:bg-surface-900 focus:border-brand-500/30 focus:ring-2 focus:ring-brand-500/20 focus:shadow-[0_0_15px_rgba(20,184,166,0.15)] transition-all duration-300"
+                        className="w-64 bg-surface-900/50 border border-white/[0.05] shadow-inner rounded-full py-2 pl-10 pr-4 text-sm text-surface-100 placeholder-surface-400 focus:outline-none focus:bg-surface-900 focus:border-brand-500/30 focus:ring-2 focus:ring-brand-500/20 transition-all duration-300"
                     />
                 </div>
+
+                {/* Dark / Light mode toggle */}
+                <button
+                    onClick={toggleTheme}
+                    title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                    className="relative p-2 text-surface-300 hover:text-brand-300 transition-all duration-300 rounded-full hover:bg-surface-800/50 hover:shadow-[0_0_15px_rgba(20,184,166,0.15)]"
+                >
+                    {theme === 'dark'
+                        ? <Sun className="h-5 w-5 drop-shadow-md" />
+                        : <Moon className="h-5 w-5 drop-shadow-md" />
+                    }
+                </button>
 
                 <button className="relative p-2 text-surface-300 hover:text-brand-300 transition-all duration-300 rounded-full hover:bg-surface-800/50 hover:shadow-[0_0_15px_rgba(20,184,166,0.15)]">
                     <Bell className="h-5 w-5 drop-shadow-md" />
