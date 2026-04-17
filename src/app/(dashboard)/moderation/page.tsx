@@ -141,7 +141,7 @@ export default function ModerationPage() {
                                         Dismiss Flag
                                     </button>
                                     <button
-                                        onClick={() => handleDeleteIssue(report._id, report.issueId._id)}
+                                        onClick={() => handleDeleteIssue(report._id, report.issueId._id!)}
                                         disabled={actioning === `delete-${report._id}` || actioning === `dismiss-${report._id}`}
                                         className="w-full justify-center flex items-center gap-2 px-4 py-2 bg-danger/10 hover:bg-danger/20 text-danger border border-danger/20 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
                                     >
