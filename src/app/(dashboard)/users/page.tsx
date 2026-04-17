@@ -131,7 +131,7 @@ export default function UsersPage() {
                                         <div className="flex items-center justify-end gap-2">
                                             {admin.role !== 'SUPER_ADMIN' ? (
                                                 <button
-                                                    onClick={() => handleToggleStatus(admin._id, admin.isDisabled)}
+                                                    onClick={() => handleToggleStatus(admin._id!, admin.isDisabled)}
                                                     disabled={actioning === admin._id}
                                                     className={`px-3 py-1 text-xs font-medium rounded border transition-colors disabled:opacity-50 ${admin.isDisabled
                                                         ? 'border-success/30 text-success hover:bg-success/10'
@@ -195,7 +195,7 @@ export default function UsersPage() {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <button
-                                            onClick={() => handleToggleStatus(cit._id, cit.isDisabled)}
+                                            onClick={() => handleToggleStatus(cit._id!, cit.isDisabled)}
                                             disabled={actioning === cit._id}
                                             className={`px-3 py-1 text-xs font-medium rounded border transition-colors disabled:opacity-50 ${cit.isDisabled
                                                 ? 'border-success/30 text-success hover:bg-success/10'
