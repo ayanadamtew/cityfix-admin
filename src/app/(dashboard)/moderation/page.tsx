@@ -11,9 +11,9 @@ import Link from 'next/link';
 import { io } from 'socket.io-client';
 
 interface ReportedPost {
-    _id: string;
-    issueId: IssueReport;
-    citizenId: User;
+    id: string;
+    issue: IssueReport;
+    reporter: User;
     reason: string;
     createdAt: string;
 }
@@ -54,7 +54,7 @@ export default function ModerationPage() {
         setActioning(`dismiss-${reportId}`);
         try {
             await api.delete(`/admin/moderation/reports/${reportId}/dismiss`);
-            setReports(reports.filter(r => r._id !== reportId));
+            setReports(reports.filter(r => r.id !== reportId));
         } catch (error) {
             console.error('Error dismissing report:', error);
         } finally {
@@ -66,7 +66,7 @@ export default function ModerationPage() {
         setActioning(`delete-${reportId}`);
         try {
             await api.delete(`/admin/moderation/reports/${reportId}/issue`);
-            setReports(reports.filter(r => r._id !== reportId));
+            setReports(reports.filter(r => r.id !== reportId));
         } catch (error) {
             console.error('Error deleting issue:', error);
         } finally {
@@ -108,7 +108,7 @@ export default function ModerationPage() {
                 ) : (
                     <div className="divide-y divide-white/5">
                         {reports.map((report) => (
-                            <div key={report._id} className="p-6 hover:bg-white/[0.02] transition-colors flex flex-col md:flex-row md:items-center gap-6 group">
+                            <div key={report.id} className="p-6 hover:bg-white/[0.02] transition-colors flex flex-col md:flex-row md:items-center gap-6 group">
                                 {/* Reason & Reporter */}
                                 <div className="md:w-1/4 shrink-0">
                                     <div className="flex items-center gap-2 text-danger mb-2">
@@ -116,14 +116,14 @@ export default function ModerationPage() {
                                         <span className="font-semibold text-sm uppercase tracking-wider">Flagged</span>
                                     </div>
                                     <p className="text-white font-medium mb-1">{report.reason}</p>
-                                    <p className="text-xs text-surface-400">Reported by {report.citizenId.fullName}</p>
+                                    <p className="text-xs text-surface-400">Reported by {report.reporter?.fullName}</p>
                                 </div>
 
                                 {/* Content Preview */}
                                 <div className="flex-1 bg-surface-900/50 rounded-lg p-4 border border-white/5">
-                                    <p className="text-surface-200 text-sm line-clamp-2 mb-3">&quot;{report.issueId.description}&quot;</p>
+                                    <p className="text-surface-200 text-sm line-clamp-2 mb-3">&quot;{report.issue?.description}&quot;</p>
                                     <Link
-                                        href={`/issues/${report.issueId._id}`}
+                                        href={`/issues/${report.issue?.id || (report.issue as any)?._id}`}
                                         className="inline-flex items-center gap-1.5 text-brand-400 hover:text-brand-300 transition-colors text-xs font-semibold uppercase tracking-wider"
                                     >
                                         Review full issue context <ExternalLink className="h-3.5 w-3.5" />
@@ -133,19 +133,19 @@ export default function ModerationPage() {
                                 {/* Actions */}
                                 <div className="md:w-1/4 shrink-0 flex flex-row md:flex-col gap-3 justify-end items-end">
                                     <button
-                                        onClick={() => handleDismiss(report._id)}
-                                        disabled={actioning === `dismiss-${report._id}` || actioning === `delete-${report._id}`}
+                                        onClick={() => handleDismiss(report.id)}
+                                        disabled={actioning === `dismiss-${report.id}` || actioning === `delete-${report.id}`}
                                         className="w-full justify-center flex items-center gap-2 px-4 py-2 bg-surface-800 hover:bg-surface-700 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
                                     >
-                                        {actioning === `dismiss-${report._id}` ? <RefreshCw className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 text-success" />}
+                                        {actioning === `dismiss-${report.id}` ? <RefreshCw className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 text-success" />}
                                         Dismiss Flag
                                     </button>
                                     <button
-                                        onClick={() => handleDeleteIssue(report._id, report.issueId._id!)}
-                                        disabled={actioning === `delete-${report._id}` || actioning === `dismiss-${report._id}`}
+                                        onClick={() => handleDeleteIssue(report.id, report.issue?.id || (report.issue as any)?._id)}
+                                        disabled={actioning === `delete-${report.id}` || actioning === `dismiss-${report.id}`}
                                         className="w-full justify-center flex items-center gap-2 px-4 py-2 bg-danger/10 hover:bg-danger/20 text-danger border border-danger/20 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
                                     >
-                                        {actioning === `delete-${report._id}` ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                        {actioning === `delete-${report.id}` ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                                         Delete Issue
                                     </button>
                                 </div>
