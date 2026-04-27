@@ -9,7 +9,6 @@ import {
     MapPin,
     Users,
     ShieldAlert,
-    Settings,
     LogOut
 } from 'lucide-react';
 
@@ -25,7 +24,6 @@ export default function Sidebar() {
         ...(isSuperAdmin ? [
             { name: 'Moderation', href: '/moderation', icon: ShieldAlert },
             { name: 'Users', href: '/users', icon: Users },
-            { name: 'Settings', href: '/settings', icon: Settings },
         ] : []),
     ];
 

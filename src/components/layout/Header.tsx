@@ -4,10 +4,14 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import { Bell, Search, Menu, Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
     const pathname = usePathname();
     const { theme, toggleTheme } = useTheme();
+    const { hasRole } = useAuth();
+    
+    const isSuperAdmin = hasRole(['SUPER_ADMIN']);
 
     // Very simple breadcrumb logic for header title
     const title = pathname === '/'
@@ -48,13 +52,15 @@ export default function Header() {
                     }
                 </button>
 
-                <button className="relative p-2 text-surface-300 hover:text-brand-300 transition-all duration-300 rounded-full hover:bg-surface-800/50 hover:shadow-[0_0_15px_rgba(20,184,166,0.15)]">
-                    <Bell className="h-5 w-5 drop-shadow-md" />
-                    <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75 shadow-[0_0_10px_rgba(20,184,166,0.6)]"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-gradient-to-tr from-brand-400 to-brand-600 shadow-[0_0_8px_rgba(20,184,166,0.8)]"></span>
-                    </span>
-                </button>
+                {!isSuperAdmin && (
+                    <button className="relative p-2 text-surface-300 hover:text-brand-300 transition-all duration-300 rounded-full hover:bg-surface-800/50 hover:shadow-[0_0_15px_rgba(20,184,166,0.15)]">
+                        <Bell className="h-5 w-5 drop-shadow-md" />
+                        <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75 shadow-[0_0_10px_rgba(20,184,166,0.6)]"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-gradient-to-tr from-brand-400 to-brand-600 shadow-[0_0_8px_rgba(20,184,166,0.8)]"></span>
+                        </span>
+                    </button>
+                )}
             </div>
         </header>
     );

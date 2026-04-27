@@ -139,7 +139,7 @@ export default function IssueDetailPage(props: Props) {
 
     if (!issue) return <div>Issue not found.</div>;
 
-    const citizen = issue.citizenId as User;
+    const citizen = (issue.citizen ?? issue.citizenId) as User;
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
