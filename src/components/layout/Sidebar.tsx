@@ -9,7 +9,9 @@ import {
     MapPin,
     Users,
     ShieldAlert,
-    LogOut
+    LogOut,
+    Wrench,
+    ClipboardCheck,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -17,10 +19,15 @@ export default function Sidebar() {
     const { user, hasRole, logout } = useAuth();
 
     const isSuperAdmin = hasRole(['SUPER_ADMIN']);
+    const isSectorAdmin = hasRole(['SECTOR_ADMIN']);
 
     const links = [
         { name: 'Dashboard', href: '/', icon: LayoutDashboard },
         { name: 'Issues', href: '/issues', icon: MapPin },
+        ...(isSectorAdmin ? [
+            { name: 'Technicians', href: '/technicians', icon: Wrench },
+            { name: 'Verification', href: '/verification', icon: ClipboardCheck },
+        ] : []),
         ...(isSuperAdmin ? [
             { name: 'Moderation', href: '/moderation', icon: ShieldAlert },
             { name: 'Users', href: '/users', icon: Users },

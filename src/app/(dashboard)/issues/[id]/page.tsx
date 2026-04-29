@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { io } from 'socket.io-client';
 import { useAuth } from '@/contexts/AuthContext';
-import { IssueReport, User, IssueComment, IssueFeedback } from '@/types';
+import { IssueReport, User, IssueComment, IssueFeedback, Assignment, CompletionProof } from '@/types';
 import api from '@/lib/api';
-import { ChevronLeft, MapPin, User as UserIcon, Calendar, Clock, Image as ImageIcon, CheckCircle2, AlertTriangle, Loader2, MessageSquare, Send, Star } from 'lucide-react';
+import { ChevronLeft, MapPin, User as UserIcon, Calendar, Clock, Image as ImageIcon, CheckCircle2, AlertTriangle, Loader2, MessageSquare, Send, Star, Wrench, X, Shield } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 // Mapbox fallback used instead of react-map-gl which fails in certain node/turbopack configs
 
@@ -29,6 +29,13 @@ export default function IssueDetailPage(props: Props) {
     const [updating, setUpdating] = useState(false);
     const [newComment, setNewComment] = useState('');
     const [postingComment, setPostingComment] = useState(false);
+
+    // Assignment state
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [technicians, setTechnicians] = useState<User[]>([]);
+    const [assignForm, setAssignForm] = useState({ technicianId: '', priority: 'Medium', deadline: '', notes: '' });
+    const [assigning, setAssigning] = useState(false);
+    const [assignmentData, setAssignmentData] = useState<Assignment | null>(null);
 
     useEffect(() => {
         api.get<{ issue: IssueReport, comments: IssueComment[], feedback?: IssueFeedback }>(`/issues/${id}`)
@@ -54,6 +61,9 @@ export default function IssueDetailPage(props: Props) {
                 });
             })
             .finally(() => setLoading(false));
+
+        // Fetch technicians for assignment
+        api.get<User[]>('/admin/technicians').then(res => setTechnicians(res.data)).catch(() => {});
 
         // Setup Socket.IO connection only if backend is explicitly configured
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -87,19 +97,38 @@ export default function IssueDetailPage(props: Props) {
         };
     }, [id]);
 
-    const updateStatus = async (newStatus: 'Pending' | 'In Progress' | 'Resolved') => {
+    const updateStatus = async (newStatus: string) => {
         if (!issue) return;
         setUpdating(true);
         try {
             await api.put(`/admin/issues/${id}/status`, { status: newStatus });
-            setIssue({ ...issue, status: newStatus });
-            // In a real app, toast notification here
+            setIssue({ ...issue, status: newStatus as any });
         } catch (error) {
             console.error('Update failed:', error);
-            // Mock update on error for demo presentation
-            setIssue({ ...issue, status: newStatus });
+            setIssue({ ...issue, status: newStatus as any });
         } finally {
             setUpdating(false);
+        }
+    };
+
+    const handleAssign = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!assignForm.technicianId) return;
+        setAssigning(true);
+        try {
+            const res = await api.post(`/admin/issues/${id}/assign`, {
+                technicianId: assignForm.technicianId,
+                priority: assignForm.priority,
+                deadline: assignForm.deadline || null,
+                notes: assignForm.notes || null,
+            });
+            setAssignmentData(res.data.assignment);
+            setIssue(prev => prev ? { ...prev, status: 'Assigned' } : prev);
+            setShowAssignModal(false);
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to assign technician.');
+        } finally {
+            setAssigning(false);
         }
     };
 
@@ -168,34 +197,42 @@ export default function IssueDetailPage(props: Props) {
                 {/* Status Actions (Visible to Sector Admin assigned ONLY) */}
                 {user?.role !== 'SUPER_ADMIN' && (
                     <div className="glass-card p-4 sm:p-2 sm:px-4 flex sm:flex-row flex-col items-center gap-4 border-brand-500/20 bg-brand-500/5">
-                        <span className="text-sm font-semibold text-white mr-2">Update Status:</span>
                         {updating ? (
                             <div className="px-4 py-2 flex items-center justify-center">
                                 <Loader2 className="h-5 w-5 animate-spin text-brand-400" />
                             </div>
                         ) : (
-                            <div className="flex items-center gap-2">
-                                <button
-                                    disabled={issue.status === 'Pending'}
-                                    onClick={() => updateStatus('Pending')}
-                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${issue.status === 'Pending' ? 'bg-warning/20 text-warning border border-warning/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700'}`}
-                                >
-                                    Pending
-                                </button>
-                                <button
-                                    disabled={issue.status === 'In Progress'}
-                                    onClick={() => updateStatus('In Progress')}
-                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${issue.status === 'In Progress' ? 'bg-info/20 text-info border border-info/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700'}`}
-                                >
-                                    In Progress
-                                </button>
-                                <button
-                                    disabled={issue.status === 'Resolved'}
-                                    onClick={() => updateStatus('Resolved')}
-                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${issue.status === 'Resolved' ? 'bg-success/20 text-success border border-success/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700'}`}
-                                >
-                                    Resolved
-                                </button>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                {issue.status === 'Pending' && (
+                                    <button
+                                        onClick={() => updateStatus('Approved')}
+                                        className="px-4 py-2 text-sm font-medium rounded-lg bg-success/20 text-success border border-success/30 hover:bg-success/30 transition-all"
+                                    >
+                                        ✓ Approve Report
+                                    </button>
+                                )}
+                                {['Pending', 'Approved'].includes(issue.status) && (
+                                    <button
+                                        onClick={() => setShowAssignModal(true)}
+                                        className="px-4 py-2 text-sm font-medium rounded-lg bg-brand-600 text-white hover:bg-brand-500 transition-all flex items-center gap-2 shadow-lg shadow-brand-500/20"
+                                    >
+                                        <Wrench className="h-4 w-4" />
+                                        Assign Technician
+                                    </button>
+                                )}
+                                <span className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
+                                    {
+                                        'Pending': 'bg-warning/10 text-warning border border-warning/20',
+                                        'Approved': 'bg-info/10 text-info border border-info/20',
+                                        'Assigned': 'bg-brand-500/10 text-brand-400 border border-brand-500/20',
+                                        'In Progress': 'bg-info/10 text-info border border-info/20',
+                                        'Waiting Verification': 'bg-warning/10 text-warning border border-warning/20',
+                                        'Resolved': 'bg-success/10 text-success border border-success/20',
+                                        'Rejected': 'bg-danger/10 text-danger border border-danger/20',
+                                    }[issue.status] || 'bg-surface-800 text-surface-400'
+                                }`}>
+                                    {issue.status}
+                                </span>
                             </div>
                         )}
                     </div>
@@ -341,6 +378,50 @@ export default function IssueDetailPage(props: Props) {
                         )}
                     </div>
 
+                    {/* Assignment Details */}
+                    {(assignmentData || issue.assignment) && (
+                        <div className="glass-card p-6 border-brand-500/20">
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2 border-b border-white/5 pb-4">
+                                <Wrench className="h-5 w-5 text-brand-400" />
+                                Assigned Technician
+                            </h3>
+                            {(() => {
+                                const a = assignmentData || issue.assignment;
+                                const tech = a?.technician as User | undefined;
+                                return (
+                                    <div className="space-y-3">
+                                        {tech && (
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-sm font-bold text-white border border-brand-400/30">
+                                                    {tech.fullName?.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-white">{tech.fullName}</p>
+                                                    {tech.specialization && <p className="text-xs text-brand-300">{tech.specialization}</p>}
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="grid grid-cols-2 gap-3 text-sm">
+                                            <div>
+                                                <p className="text-xs text-surface-400 uppercase font-semibold">Priority</p>
+                                                <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold ${
+                                                    { Low: 'bg-surface-800 text-surface-300', Medium: 'bg-info/10 text-info', High: 'bg-warning/10 text-warning', Urgent: 'bg-danger/10 text-danger' }[a?.priority || 'Medium']
+                                                }`}>{a?.priority}</span>
+                                            </div>
+                                            {a?.deadline && (
+                                                <div>
+                                                    <p className="text-xs text-surface-400 uppercase font-semibold">Deadline</p>
+                                                    <p className="text-xs text-surface-200 mt-1">{new Date(a.deadline).toLocaleDateString()}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {a?.notes && <p className="text-xs text-surface-300 bg-surface-800/50 p-2 rounded-lg border border-white/5">{a.notes}</p>}
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    )}
+
                     {/* Urgency Votes */}
                     <div className="glass-card p-6 relative overflow-hidden group">
                         {/* Background gradient flare */}
@@ -390,6 +471,78 @@ export default function IssueDetailPage(props: Props) {
 
                 </div>
             </div>
+
+            {/* Assign Technician Modal */}
+            {showAssignModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="glass-card w-full max-w-md p-6 mx-4 animate-slide-up">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-bold text-white">Assign Technician</h3>
+                            <button onClick={() => setShowAssignModal(false)} className="p-1 rounded-lg text-surface-400 hover:text-white hover:bg-surface-800 transition-colors">
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleAssign} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">Technician *</label>
+                                <select
+                                    title="Select Technician"
+                                    value={assignForm.technicianId}
+                                    onChange={(e) => setAssignForm({ ...assignForm, technicianId: e.target.value })}
+                                    required
+                                    className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                >
+                                    <option value="">Select a technician...</option>
+                                    {technicians.filter(t => !t.isDisabled).map(t => (
+                                        <option key={t.id || t._id} value={t.id || t._id}>
+                                            {t.fullName}{t.specialization ? ` — ${t.specialization}` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">Priority</label>
+                                <select
+                                    title="Select Priority"
+                                    value={assignForm.priority}
+                                    onChange={(e) => setAssignForm({ ...assignForm, priority: e.target.value })}
+                                    className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                >
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                    <option value="Urgent">Urgent</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">Deadline</label>
+                                <input
+                                    type="date"
+                                    value={assignForm.deadline}
+                                    onChange={(e) => setAssignForm({ ...assignForm, deadline: e.target.value })}
+                                    className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">Notes</label>
+                                <textarea
+                                    value={assignForm.notes}
+                                    onChange={(e) => setAssignForm({ ...assignForm, notes: e.target.value })}
+                                    rows={2}
+                                    className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors resize-none"
+                                    placeholder="Additional instructions..."
+                                />
+                            </div>
+                            <div className="pt-2 flex gap-3">
+                                <button type="button" onClick={() => setShowAssignModal(false)} className="flex-1 px-4 py-2.5 rounded-xl bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700 transition-colors text-sm font-medium">Cancel</button>
+                                <button type="submit" disabled={assigning} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white transition-all text-sm font-medium shadow-lg shadow-brand-500/20 disabled:opacity-50">
+                                    {assigning ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Assign'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

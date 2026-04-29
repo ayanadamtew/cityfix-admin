@@ -88,8 +88,12 @@ export default function IssuesPage() {
     const StatusBadge = ({ status }: { status: string }) => {
         const config = {
             'Pending': { color: 'text-warning bg-warning/10 border-warning/20', icon: AlertTriangle },
+            'Approved': { color: 'text-info bg-info/10 border-info/20', icon: CheckCircle2 },
+            'Assigned': { color: 'text-brand-400 bg-brand-500/10 border-brand-500/20', icon: Clock },
             'In Progress': { color: 'text-info bg-info/10 border-info/20', icon: Clock },
-            'Resolved': { color: 'text-success bg-success/10 border-success/20', icon: CheckCircle2 }
+            'Waiting Verification': { color: 'text-warning bg-warning/10 border-warning/20', icon: Clock },
+            'Resolved': { color: 'text-success bg-success/10 border-success/20', icon: CheckCircle2 },
+            'Rejected': { color: 'text-danger bg-danger/10 border-danger/20', icon: AlertTriangle }
         }[status] || { color: 'text-surface-400 bg-surface-800 border-white/5', icon: CheckCircle2 };
 
         const Icon = config.icon;
@@ -170,8 +174,12 @@ export default function IssuesPage() {
                         >
                             <option value="All">All Statuses</option>
                             <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Assigned">Assigned</option>
                             <option value="In Progress">In Progress</option>
+                            <option value="Waiting Verification">Waiting Verification</option>
                             <option value="Resolved">Resolved</option>
+                            <option value="Rejected">Rejected</option>
                         </select>
                         <Filter className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400 pointer-events-none" />
                     </div>
