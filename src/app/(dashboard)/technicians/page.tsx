@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { User } from '@/types';
 import api from '@/lib/api';
 import {
-    Wrench, Plus, Search, UserCheck, UserX, Edit3, X, Loader2, Phone, Mail, Shield
+    Wrench, Plus, Search, UserCheck, UserX, Edit3, X, Loader2, Phone, Mail, Shield, Star
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -190,9 +190,19 @@ export default function TechniciansPage() {
                                     </div>
 
                                     {tech.specialization && (
-                                        <div className="mt-3 flex items-center gap-1.5">
-                                            <Shield className="h-3.5 w-3.5 text-brand-400" />
-                                            <span className="text-xs text-brand-300 font-medium">{tech.specialization}</span>
+                                        <div className="mt-3 flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5">
+                                                <Shield className="h-3.5 w-3.5 text-brand-400" />
+                                                <span className="text-xs text-brand-300 font-medium">{tech.specialization}</span>
+                                            </div>
+                                            {(tech.ratingCount ?? 0) > 0 && (
+                                                <div className="flex items-center gap-1 bg-brand-500/10 px-2 py-0.5 rounded-full border border-brand-500/20">
+                                                    <Star className="h-3 w-3 text-brand-400 fill-brand-400" />
+                                                    <span className="text-[10px] font-bold text-brand-300">
+                                                        {tech.averageRating?.toFixed(1)} ({tech.ratingCount})
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 

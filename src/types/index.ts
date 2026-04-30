@@ -16,6 +16,8 @@ export interface User {
     specialization?: string;
     fcmToken?: string | null;
     isDisabled?: boolean;
+    averageRating?: number;
+    ratingCount?: number;
     createdAt: string;
     updatedAt: string;
 }
