@@ -170,7 +170,11 @@ export default function ModerationPage() {
                 title="Dismiss Report Flag"
                 message={
                     <>
-                        Are you sure you want to dismiss this flag? The issue reported by <span className="font-semibold text-surface-900">{reportToDismiss?.issue?.citizen?.fullName || 'the citizen'}</span> will remain on the platform, and the flag will be permanently removed.
+                        Are you sure you want to dismiss this flag? The issue reported by <span className="font-semibold text-surface-900">
+                            {reportToDismiss?.issue?.citizen && typeof reportToDismiss.issue.citizen !== 'string' 
+                                ? reportToDismiss.issue.citizen.fullName 
+                                : 'the citizen'}
+                        </span> will remain on the platform, and the flag will be permanently removed.
                     </>
                 }
                 confirmText="Dismiss Flag"
