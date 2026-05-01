@@ -1,8 +1,8 @@
 export type Role = 'CITIZEN' | 'SECTOR_ADMIN' | 'SUPER_ADMIN' | 'TECHNICIAN';
 export type Department = 'Water' | 'Waste' | 'Road' | 'Electricity';
-export type IssueStatus = 'Pending' | 'Approved' | 'Assigned' | 'In Progress' | 'Waiting Verification' | 'Resolved' | 'Rejected';
+export type IssueStatus = 'Pending' | 'Approved' | 'Assigned' | 'In Progress' | 'Waiting Confirmation' | 'Resolved' | 'Rejected';
 export type Priority = 'Low' | 'Medium' | 'High' | 'Urgent';
-export type AssignmentStatus = 'Assigned' | 'In Progress' | 'Waiting Verification' | 'Resolved' | 'Rejected';
+export type AssignmentStatus = 'Assigned' | 'In Progress' | 'Waiting Confirmation' | 'Resolved' | 'Rejected';
 
 export interface User {
     id?: string;
@@ -13,7 +13,7 @@ export interface User {
     phoneNumber?: string;
     role: Role;
     department?: Department;
-    specialization?: string;
+    specialization?: string[];
     fcmToken?: string | null;
     isDisabled?: boolean;
     averageRating?: number;
@@ -36,6 +36,7 @@ export interface IssueReport {
     citizen?: User | string;
     assignedAdminId?: User | string;
     category: Department;
+    subcategory?: string | null;
     description: string;
     photoUrl?: string | null;
     location: IssueLocation;
@@ -96,6 +97,16 @@ export interface AnalyticsData {
         totalAssignments: number;
         completedAssignments: number;
     };
+    bySubcategory?: Record<string, Record<string, number>>;
+    technicianPerformance?: Array<{
+        id: string;
+        fullName: string;
+        specialization: string[] | null;
+        averageRating: number;
+        ratingCount: number;
+        resolvedCount: number;
+        totalAssigned: number;
+    }>;
     locations: Array<{
         id?: string;
         _id?: string;

@@ -7,7 +7,7 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> { }
 export function Skeleton({ className, ...props }: SkeletonProps) {
     return (
         <div
-            className={twMerge(clsx("animate-pulse rounded-xl bg-surface-800/80", className))}
+            className={twMerge(clsx("animate-pulse rounded-xl bg-surface-200", className))}
             {...props}
         />
     );

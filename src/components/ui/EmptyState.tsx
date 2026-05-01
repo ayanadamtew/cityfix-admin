@@ -13,12 +13,12 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
     return (
-        <div className={twMerge(clsx("flex flex-col items-center justify-center p-12 text-center glass-card border-dashed border-2 border-white/10", className))}>
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-800 shadow-inner mb-6">
+        <div className={twMerge(clsx("flex flex-col items-center justify-center p-12 text-center rounded-xl border-dashed border-2 border-surface-200 bg-surface-50", className))}>
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-100 mb-6">
                 <Icon className="h-8 w-8 text-surface-400" />
             </div>
-            <h3 className="text-xl font-semibold text-white tracking-tight mb-2">{title}</h3>
-            <p className="max-w-sm text-sm text-surface-400 mb-6">{description}</p>
+            <h3 className="text-xl font-semibold text-surface-900 tracking-tight mb-2">{title}</h3>
+            <p className="max-w-sm text-sm text-surface-500 mb-6">{description}</p>
             {action && <div>{action}</div>}
         </div>
     );

@@ -22,14 +22,12 @@ export default function IssuesPage() {
     });
 
     useEffect(() => {
-        // The endpoint `/api/admin/issues` already filters by role backend-side.
         api.get<IssueReport[]>('/admin/issues')
             .then(res => {
                 setIssues(res.data);
             })
             .catch(err => {
                 console.error('Failed to fetch issues:', err);
-                // Fallback mock data when backend is not connected
                 setIssues([
                     {
                         _id: 'sample-doc-1',
@@ -57,9 +55,8 @@ export default function IssuesPage() {
             })
             .finally(() => setLoading(false));
 
-        // Setup Socket.IO connection only if backend is explicitly configured
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        if (!apiUrl) return; // Skip socket in dev if no backend socket server
+        if (!apiUrl) return;
         const socket = io(apiUrl);
 
         socket.on('new_issue', (issue: IssueReport) => {
@@ -87,14 +84,14 @@ export default function IssuesPage() {
 
     const StatusBadge = ({ status }: { status: string }) => {
         const config = {
-            'Pending': { color: 'text-warning bg-warning/10 border-warning/20', icon: AlertTriangle },
-            'Approved': { color: 'text-info bg-info/10 border-info/20', icon: CheckCircle2 },
-            'Assigned': { color: 'text-brand-400 bg-brand-500/10 border-brand-500/20', icon: Clock },
-            'In Progress': { color: 'text-info bg-info/10 border-info/20', icon: Clock },
-            'Waiting Verification': { color: 'text-warning bg-warning/10 border-warning/20', icon: Clock },
-            'Resolved': { color: 'text-success bg-success/10 border-success/20', icon: CheckCircle2 },
-            'Rejected': { color: 'text-danger bg-danger/10 border-danger/20', icon: AlertTriangle }
-        }[status] || { color: 'text-surface-400 bg-surface-800 border-white/5', icon: CheckCircle2 };
+            'Pending': { color: 'text-amber-700 bg-amber-50 border-amber-200', icon: AlertTriangle },
+            'Approved': { color: 'text-sky-700 bg-sky-50 border-sky-200', icon: CheckCircle2 },
+            'Assigned': { color: 'text-blue-700 bg-blue-50 border-blue-200', icon: Clock },
+            'In Progress': { color: 'text-sky-700 bg-sky-50 border-sky-200', icon: Clock },
+            'Waiting Confirmation': { color: 'text-amber-700 bg-amber-50 border-amber-200', icon: Clock },
+            'Resolved': { color: 'text-emerald-700 bg-emerald-50 border-emerald-200', icon: CheckCircle2 },
+            'Rejected': { color: 'text-red-700 bg-red-50 border-red-200', icon: AlertTriangle }
+        }[status] || { color: 'text-surface-600 bg-surface-100 border-surface-200', icon: CheckCircle2 };
 
         const Icon = config.icon;
 
@@ -136,16 +133,17 @@ export default function IssuesPage() {
     const SortIcon = ({ columnKey }: { columnKey: keyof IssueReport }) => {
         if (sortConfig.key !== columnKey) return <ArrowUpDown className="h-3.5 w-3.5 opacity-30" />;
         return sortConfig.direction === 'asc'
-            ? <ChevronUp className="h-4 w-4 text-brand-500" />
-            : <ChevronDown className="h-4 w-4 text-brand-500" />;
+            ? <ChevronUp className="h-4 w-4 text-brand-600" />
+            : <ChevronDown className="h-4 w-4 text-brand-600" />;
     };
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
+            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight">Active Issues</h2>
-                    <p className="text-surface-400 text-sm">
+                    <h2 className="text-2xl font-bold text-surface-900 tracking-tight">Active Issues</h2>
+                    <p className="text-surface-500 text-sm mt-1">
                         {user?.role === 'SUPER_ADMIN'
                             ? 'Monitoring all city department reports.'
                             : `Managing reports for the ${user?.department} sector.`}
@@ -153,16 +151,16 @@ export default function IssuesPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <div className="relative group">
+                    <div className="relative">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                             <Search className="h-4 w-4 text-surface-400" />
                         </div>
                         <input
                             type="text"
-                            placeholder="Search by description or area..."
+                            placeholder="Search..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full sm:w-64 bg-surface-900 border border-white/5 rounded-xl py-2 pl-9 pr-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full sm:w-56 bg-white border border-surface-300 rounded-lg py-2 pl-9 pr-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
                         />
                     </div>
                     <div className="relative">
@@ -170,14 +168,14 @@ export default function IssuesPage() {
                             title="Filter by Status"
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="appearance-none bg-surface-900 border border-white/5 rounded-xl py-2 pl-4 pr-10 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors cursor-pointer"
+                            className="appearance-none bg-white border border-surface-300 rounded-lg py-2 pl-4 pr-10 text-sm text-surface-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors cursor-pointer"
                         >
                             <option value="All">All Statuses</option>
                             <option value="Pending">Pending</option>
                             <option value="Approved">Approved</option>
                             <option value="Assigned">Assigned</option>
                             <option value="In Progress">In Progress</option>
-                            <option value="Waiting Verification">Waiting Verification</option>
+                            <option value="Waiting Confirmation">Waiting Confirmation</option>
                             <option value="Resolved">Resolved</option>
                             <option value="Rejected">Rejected</option>
                         </select>
@@ -186,7 +184,8 @@ export default function IssuesPage() {
                 </div>
             </div>
 
-            <div className="glass-card overflow-hidden">
+            {/* Table */}
+            <div className="bg-white border border-surface-200 rounded-xl overflow-hidden shadow-sm">
                 {loading ? (
                     <div className="p-6 space-y-4">
                         <Skeleton className="h-12 w-full" />
@@ -203,15 +202,16 @@ export default function IssuesPage() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm whitespace-nowrap">
-                            <thead className="bg-surface-900/50 text-surface-400 border-b border-white/5">
+                            <thead className="bg-surface-50 text-surface-500 border-b border-surface-200">
                                 <tr>
-                                    <th className="px-6 py-4 font-semibold tracking-wider">Issue ID</th>
-                                    <th className="px-6 py-4 font-semibold tracking-wider">Category</th>
-                                    <th className="px-6 py-4 font-semibold tracking-wider">Description</th>
-                                    <th className="px-6 py-4 font-semibold tracking-wider">Location</th>
-                                    <th className="px-6 py-4 font-semibold tracking-wider">Status</th>
+                                    <th className="px-6 py-3 font-semibold text-xs uppercase tracking-wider">ID</th>
+                                    <th className="px-6 py-3 font-semibold text-xs uppercase tracking-wider">Category</th>
+                                    <th className="px-6 py-3 font-semibold text-xs uppercase tracking-wider">Subcategory</th>
+                                    <th className="px-6 py-3 font-semibold text-xs uppercase tracking-wider">Description</th>
+                                    <th className="px-6 py-3 font-semibold text-xs uppercase tracking-wider">Location</th>
+                                    <th className="px-6 py-3 font-semibold text-xs uppercase tracking-wider">Status</th>
                                     <th
-                                        className="px-6 py-4 font-semibold tracking-wider cursor-pointer hover:text-white transition-colors group"
+                                        className="px-6 py-3 font-semibold text-xs uppercase tracking-wider cursor-pointer hover:text-surface-900 transition-colors"
                                         onClick={() => requestSort('urgencyCount')}
                                     >
                                         <div className="flex items-center gap-1.5">
@@ -219,24 +219,33 @@ export default function IssuesPage() {
                                             <SortIcon columnKey="urgencyCount" />
                                         </div>
                                     </th>
-                                    <th className="px-6 py-4 font-semibold tracking-wider text-right">Actions</th>
+                                    <th className="px-6 py-3 font-semibold text-xs uppercase tracking-wider text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-surface-100">
                                 {sortedIssues.map((issue) => {
                                     const issueId = issue.id ?? issue._id ?? '';
                                     return (
-                                    <tr key={issueId} className="hover:bg-white/[0.02] transition-colors group">
+                                    <tr key={issueId} className="hover:bg-surface-50 transition-colors">
                                         <td className="px-6 py-4">
-                                            <span className="font-medium text-surface-300">#{String(issueId).slice(-6)}</span>
+                                            <span className="font-mono text-surface-500 text-xs">#{String(issueId).slice(-6)}</span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-white font-medium">{issue.category}</span>
+                                            <span className="text-surface-900 font-medium">{issue.category}</span>
                                         </td>
-                                        <td className="px-6 py-4 max-w-[200px] truncate text-surface-200">
+                                        <td className="px-6 py-4">
+                                            {issue.subcategory ? (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-brand-50 text-brand-700 border border-brand-100">
+                                                    {issue.subcategory}
+                                                </span>
+                                            ) : (
+                                                <span className="text-surface-400 text-xs">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 max-w-[200px] truncate text-surface-600">
                                             {issue.description}
                                         </td>
-                                        <td className="px-6 py-4 text-surface-300">
+                                        <td className="px-6 py-4 text-surface-600">
                                             <div className="flex items-center gap-1.5">
                                                 <MapPin className="h-3.5 w-3.5 text-surface-400" />
                                                 {issue.location?.kebele || issue.location?.address || 'Unknown'}
@@ -246,15 +255,12 @@ export default function IssuesPage() {
                                             <StatusBadge status={issue.status} />
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-1.5">
-                                                <div className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
-                                                <span className="text-brand-300 font-bold">{issue.urgencyCount}</span>
-                                            </div>
+                                            <span className="text-surface-900 font-bold">{issue.urgencyCount}</span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <Link
                                                 href={`/issues/${issueId}`}
-                                                className="inline-flex items-center justify-center p-2 rounded-lg text-surface-400 hover:text-white hover:bg-surface-800 transition-colors"
+                                                className="inline-flex items-center justify-center p-2 rounded-lg text-surface-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
                                                 title="View Details"
                                             >
                                                 <Eye className="h-5 w-5" />

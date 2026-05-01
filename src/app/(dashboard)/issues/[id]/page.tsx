@@ -174,7 +174,7 @@ export default function IssueDetailPage(props: Props) {
         <div className="max-w-5xl mx-auto space-y-6">
             <button
                 onClick={() => router.back()}
-                className="flex items-center gap-2 text-sm text-surface-400 hover:text-white transition-colors group w-max"
+                className="flex items-center gap-2 text-sm text-surface-500 hover:text-surface-800 transition-colors group w-max"
             >
                 <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
                 Back to Issues
@@ -183,12 +183,17 @@ export default function IssueDetailPage(props: Props) {
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
-                        <h2 className="text-3xl font-bold text-white tracking-tight">Report #{String(issue.id ?? issue._id ?? '').slice(-6)}</h2>
-                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-500/10 text-brand-400 border border-brand-500/20">
+                        <h2 className="text-3xl font-bold text-surface-900 tracking-tight">Report #{String(issue.id ?? issue._id ?? '').slice(-6)}</h2>
+                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-50 text-brand-600 border border-brand-100">
                             {issue.category}
                         </span>
+                        {issue.subcategory && (
+                            <span className="px-3 py-1 rounded-full text-xs font-bold tracking-wider bg-surface-100 text-surface-700 border border-surface-200">
+                                {issue.subcategory}
+                            </span>
+                        )}
                     </div>
-                    <p className="flex items-center gap-2 text-surface-400 text-sm">
+                    <p className="flex items-center gap-2 text-surface-500 text-sm">
                         <Calendar className="h-4 w-4" />
                         Reported on {new Date(issue.createdAt).toLocaleDateString()} at {new Date(issue.createdAt).toLocaleTimeString()}
                     </p>
@@ -196,10 +201,10 @@ export default function IssueDetailPage(props: Props) {
 
                 {/* Status Actions (Visible to Sector Admin assigned ONLY) */}
                 {user?.role !== 'SUPER_ADMIN' && (
-                    <div className="glass-card p-4 sm:p-2 sm:px-4 flex sm:flex-row flex-col items-center gap-4 border-brand-500/20 bg-brand-500/5">
+                    <div className="bg-white border border-surface-200 rounded-xl shadow-sm p-4 sm:p-2 sm:px-4 flex sm:flex-row flex-col items-center gap-4 border-brand-100 bg-brand-500/5">
                         {updating ? (
                             <div className="px-4 py-2 flex items-center justify-center">
-                                <Loader2 className="h-5 w-5 animate-spin text-brand-400" />
+                                <Loader2 className="h-5 w-5 animate-spin text-brand-600" />
                             </div>
                         ) : (
                             <div className="flex items-center gap-2 flex-wrap">
@@ -214,7 +219,7 @@ export default function IssueDetailPage(props: Props) {
                                 {['Pending', 'Approved'].includes(issue.status) && (
                                     <button
                                         onClick={() => setShowAssignModal(true)}
-                                        className="px-4 py-2 text-sm font-medium rounded-lg bg-brand-600 text-white hover:bg-brand-500 transition-all flex items-center gap-2 shadow-lg shadow-brand-500/20"
+                                        className="px-4 py-2 text-sm font-medium rounded-lg bg-brand-600 text-surface-900 hover:bg-brand-500 transition-all flex items-center gap-2 shadow-sm"
                                     >
                                         <Wrench className="h-4 w-4" />
                                         Assign Technician
@@ -224,12 +229,12 @@ export default function IssueDetailPage(props: Props) {
                                     {
                                         'Pending': 'bg-warning/10 text-warning border border-warning/20',
                                         'Approved': 'bg-info/10 text-info border border-info/20',
-                                        'Assigned': 'bg-brand-500/10 text-brand-400 border border-brand-500/20',
+                                        'Assigned': 'bg-brand-50 text-brand-600 border border-brand-100',
                                         'In Progress': 'bg-info/10 text-info border border-info/20',
-                                        'Waiting Verification': 'bg-warning/10 text-warning border border-warning/20',
+                                        'Waiting Confirmation': 'bg-warning/10 text-warning border border-warning/20',
                                         'Resolved': 'bg-success/10 text-success border border-success/20',
                                         'Rejected': 'bg-danger/10 text-danger border border-danger/20',
-                                    }[issue.status] || 'bg-surface-800 text-surface-400'
+                                    }[issue.status] || 'bg-surface-100 text-surface-500'
                                 }`}>
                                     {issue.status}
                                 </span>
@@ -242,22 +247,22 @@ export default function IssueDetailPage(props: Props) {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Details & Photo */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="glass-card p-6 md:p-8">
-                        <h3 className="text-lg font-semibold text-white mb-4 border-b border-white/5 pb-4">Description</h3>
-                        <p className="text-surface-200 text-lg leading-relaxed">{issue.description}</p>
+                    <div className="bg-white border border-surface-200 rounded-xl shadow-sm p-6 md:p-8">
+                        <h3 className="text-lg font-semibold text-surface-900 mb-4 border-b border-surface-200 pb-4">Description</h3>
+                        <p className="text-surface-700 text-lg leading-relaxed">{issue.description}</p>
                     </div>
 
-                    <div className="glass-card p-6 md:p-8 overflow-hidden">
-                        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2 border-b border-white/5 pb-4">
-                            <ImageIcon className="h-5 w-5 text-brand-400" />
+                    <div className="bg-white border border-surface-200 rounded-xl shadow-sm p-6 md:p-8 overflow-hidden">
+                        <h3 className="text-lg font-semibold text-surface-900 mb-4 flex items-center gap-2 border-b border-surface-200 pb-4">
+                            <ImageIcon className="h-5 w-5 text-brand-600" />
                             Photo Evidence
                         </h3>
                         {issue.photoUrl ? (
-                            <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl border border-white/10 group">
+                            <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl border border-surface-200 group">
                                 <Image src={issue.photoUrl} alt="Issue Evidence" fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
                             </div>
                         ) : (
-                            <div className="w-full aspect-video rounded-xl bg-surface-900 border-2 border-dashed border-white/10 flex flex-col items-center justify-center text-surface-500">
+                            <div className="w-full aspect-video rounded-xl bg-white border-2 border-dashed border-surface-200 flex flex-col items-center justify-center text-surface-500">
                                 <ImageIcon className="h-10 w-10 mb-2 opacity-50" />
                                 <p>No photo provided by citizen</p>
                             </div>
@@ -265,40 +270,40 @@ export default function IssueDetailPage(props: Props) {
                     </div>
 
                     {/* Comments Section */}
-                    <div className="glass-card p-6 md:p-8">
-                        <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2 border-b border-white/5 pb-4">
-                            <MessageSquare className="h-5 w-5 text-brand-400" />
+                    <div className="bg-white border border-surface-200 rounded-xl shadow-sm p-6 md:p-8">
+                        <h3 className="text-lg font-semibold text-surface-900 mb-6 flex items-center gap-2 border-b border-surface-200 pb-4">
+                            <MessageSquare className="h-5 w-5 text-brand-600" />
                             Updates & Comments
                         </h3>
 
                         <div className="space-y-6 mb-6">
                             {comments.length === 0 ? (
-                                <p className="text-surface-400 text-sm italic">No comments or updates yet.</p>
+                                <p className="text-surface-500 text-sm italic">No comments or updates yet.</p>
                             ) : (
                                 comments.map(comment => {
                                     const cId = comment.id ?? comment._id;
                                     const author = (comment as any).author ?? comment.authorId as any;
                                     return (
-                                    <div key={cId} className="bg-surface-800/50 p-4 rounded-xl border border-white/5">
+                                    <div key={cId} className="bg-surface-50 p-4 rounded-xl border border-surface-200">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex items-center gap-2">
-                                                <div className="h-6 w-6 rounded-full bg-brand-500/20 flex items-center justify-center text-xs font-bold text-brand-400">
+                                                <div className="h-6 w-6 rounded-full bg-brand-100 flex items-center justify-center text-xs font-bold text-brand-600">
                                                     {author?.fullName?.charAt(0) ?? '?'}
                                                 </div>
-                                                <span className="font-medium text-white text-sm">
+                                                <span className="font-medium text-surface-900 text-sm">
                                                     {author?.fullName ?? 'Unknown'}
                                                 </span>
                                                 {author?.role && author.role !== 'CITIZEN' && (
-                                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-brand-500/10 text-brand-400 border border-brand-500/20">
+                                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-brand-50 text-brand-600 border border-brand-100">
                                                         Admin
                                                     </span>
                                                 )}
                                             </div>
-                                            <span className="text-xs text-surface-400">
+                                            <span className="text-xs text-surface-500">
                                                 {new Date(comment.createdAt).toLocaleDateString()} {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
-                                        <p className="text-surface-200 text-sm whitespace-pre-wrap">{comment.text}</p>
+                                        <p className="text-surface-700 text-sm whitespace-pre-wrap">{comment.text}</p>
                                     </div>
                                     );
                                 })
@@ -311,12 +316,12 @@ export default function IssueDetailPage(props: Props) {
                                 value={newComment}
                                 onChange={e => setNewComment(e.target.value)}
                                 placeholder="Add an update or comment..."
-                                className="flex-1 bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                className="flex-1 bg-white border border-surface-200 rounded-xl py-2 px-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
                             />
                             <button
                                 type="submit"
                                 disabled={postingComment || !newComment.trim()}
-                                className="flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl transition-all shadow-lg shadow-brand-500/20"
+                                className="flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-surface-900 rounded-xl transition-all shadow-sm"
                             >
                                 {postingComment ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                             </button>
@@ -327,12 +332,12 @@ export default function IssueDetailPage(props: Props) {
                 {/* Right Column - Map, Reporter, Votes */}
                 <div className="space-y-6">
                     {/* Map */}
-                    <div className="glass-card overflow-hidden flex flex-col h-[300px]">
-                        <div className="p-4 border-b border-white/5 flex items-center gap-2 bg-surface-900/50">
-                            <MapPin className="h-5 w-5 text-brand-400" />
-                            <h3 className="font-semibold text-white">Location</h3>
+                    <div className="bg-white border border-surface-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-[300px]">
+                        <div className="p-4 border-b border-surface-200 flex items-center gap-2 bg-surface-50">
+                            <MapPin className="h-5 w-5 text-brand-600" />
+                            <h3 className="font-semibold text-surface-900">Location</h3>
                         </div>
-                        <div className="flex-1 relative bg-surface-800">
+                        <div className="flex-1 relative bg-surface-100">
                             {issue.location?.latitude && issue.location?.longitude ? (
                                 <iframe
                                     width="100%"
@@ -343,46 +348,46 @@ export default function IssueDetailPage(props: Props) {
                                     src={`https://maps.google.com/maps?q=${issue.location.latitude},${issue.location.longitude}&t=k&z=16&output=embed`}
                                 ></iframe>
                             ) : (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center text-surface-500 p-4 text-center border-2 border-dashed border-white/5 m-4 rounded-xl">
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-surface-500 p-4 text-center border-2 border-dashed border-surface-200 m-4 rounded-xl">
                                     <MapPin className="h-8 w-8 mb-2 opacity-50 text-brand-500" />
-                                    <p className="text-sm font-medium text-white mb-1">Map View Unavailable</p>
+                                    <p className="text-sm font-medium text-surface-900 mb-1">Map View Unavailable</p>
                                     <p className="text-xs">Location coordinates not provided</p>
                                 </div>
                             )}
                         </div>
-                        <div className="p-4 bg-surface-900/50 border-t border-white/5">
-                            <p className="text-sm font-medium text-white line-clamp-2">{issue.location?.address || issue.location?.kebele || 'Unknown location'}</p>
+                        <div className="p-4 bg-surface-50 border-t border-surface-200">
+                            <p className="text-sm font-medium text-surface-900 line-clamp-2">{issue.location?.address || issue.location?.kebele || 'Unknown location'}</p>
                         </div>
                     </div>
 
                     {/* Citizen Info */}
-                    <div className="glass-card p-6">
-                        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2 border-b border-white/5 pb-4">
-                            <UserIcon className="h-5 w-5 text-brand-400" />
+                    <div className="bg-white border border-surface-200 rounded-xl shadow-sm p-6">
+                        <h3 className="text-lg font-semibold text-surface-900 mb-4 flex items-center gap-2 border-b border-surface-200 pb-4">
+                            <UserIcon className="h-5 w-5 text-brand-600" />
                             Reporter Details
                         </h3>
                         {citizen ? (
                             <div className="space-y-4">
                                 <div>
-                                    <p className="text-xs text-surface-400 uppercase tracking-wider font-semibold mb-1">Full Name</p>
-                                    <p className="text-sm font-medium text-white">{citizen.fullName}</p>
+                                    <p className="text-xs text-surface-500 uppercase tracking-wider font-semibold mb-1">Full Name</p>
+                                    <p className="text-sm font-medium text-surface-900">{citizen.fullName}</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-surface-400 uppercase tracking-wider font-semibold mb-1">Contact Details</p>
-                                    <p className="text-sm text-surface-200">{citizen.email}</p>
-                                    {citizen.phoneNumber && <p className="text-sm text-surface-200 mt-1">{citizen.phoneNumber}</p>}
+                                    <p className="text-xs text-surface-500 uppercase tracking-wider font-semibold mb-1">Contact Details</p>
+                                    <p className="text-sm text-surface-700">{citizen.email}</p>
+                                    {citizen.phoneNumber && <p className="text-sm text-surface-700 mt-1">{citizen.phoneNumber}</p>}
                                 </div>
                             </div>
                         ) : (
-                            <p className="text-surface-400 text-sm italic">Anonymous</p>
+                            <p className="text-surface-500 text-sm italic">Anonymous</p>
                         )}
                     </div>
 
                     {/* Assignment Details */}
                     {(assignmentData || issue.assignment) && (
-                        <div className="glass-card p-6 border-brand-500/20">
-                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2 border-b border-white/5 pb-4">
-                                <Wrench className="h-5 w-5 text-brand-400" />
+                        <div className="bg-white border border-surface-200 rounded-xl shadow-sm p-6 border-brand-100">
+                            <h3 className="text-lg font-semibold text-surface-900 mb-4 flex items-center gap-2 border-b border-surface-200 pb-4">
+                                <Wrench className="h-5 w-5 text-brand-600" />
                                 Assigned Technician
                             </h3>
                             {(() => {
@@ -392,30 +397,30 @@ export default function IssueDetailPage(props: Props) {
                                     <div className="space-y-3">
                                         {tech && (
                                             <div className="flex items-center gap-3">
-                                                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-sm font-bold text-white border border-brand-400/30">
+                                                <div className="h-10 w-10 rounded-xl bg-brand-100 flex items-center justify-center text-sm font-bold text-surface-900 border border-brand-200">
                                                     {tech.fullName?.charAt(0)}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-white">{tech.fullName}</p>
-                                                    {tech.specialization && <p className="text-xs text-brand-300">{tech.specialization}</p>}
+                                                    <p className="text-sm font-medium text-surface-900">{tech.fullName}</p>
+                                                    {tech.specialization && Array.isArray(tech.specialization) && tech.specialization.length > 0 && <p className="text-xs text-brand-700">{tech.specialization.join(', ')}</p>}
                                                 </div>
                                             </div>
                                         )}
                                         <div className="grid grid-cols-2 gap-3 text-sm">
                                             <div>
-                                                <p className="text-xs text-surface-400 uppercase font-semibold">Priority</p>
+                                                <p className="text-xs text-surface-500 uppercase font-semibold">Priority</p>
                                                 <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold ${
-                                                    { Low: 'bg-surface-800 text-surface-300', Medium: 'bg-info/10 text-info', High: 'bg-warning/10 text-warning', Urgent: 'bg-danger/10 text-danger' }[a?.priority || 'Medium']
+                                                    { Low: 'bg-surface-100 text-surface-600', Medium: 'bg-info/10 text-info', High: 'bg-warning/10 text-warning', Urgent: 'bg-danger/10 text-danger' }[a?.priority || 'Medium']
                                                 }`}>{a?.priority}</span>
                                             </div>
                                             {a?.deadline && (
                                                 <div>
-                                                    <p className="text-xs text-surface-400 uppercase font-semibold">Deadline</p>
-                                                    <p className="text-xs text-surface-200 mt-1">{new Date(a.deadline).toLocaleDateString()}</p>
+                                                    <p className="text-xs text-surface-500 uppercase font-semibold">Deadline</p>
+                                                    <p className="text-xs text-surface-700 mt-1">{new Date(a.deadline).toLocaleDateString()}</p>
                                                 </div>
                                             )}
                                         </div>
-                                        {a?.notes && <p className="text-xs text-surface-300 bg-surface-800/50 p-2 rounded-lg border border-white/5">{a.notes}</p>}
+                                        {a?.notes && <p className="text-xs text-surface-600 bg-surface-50 p-2 rounded-lg border border-surface-200">{a.notes}</p>}
                                     </div>
                                 );
                             })()}
@@ -423,31 +428,31 @@ export default function IssueDetailPage(props: Props) {
                     )}
 
                     {/* Urgency Votes */}
-                    <div className="glass-card p-6 relative overflow-hidden group">
+                    <div className="bg-white border border-surface-200 rounded-xl shadow-sm p-6 relative overflow-hidden group">
                         {/* Background gradient flare */}
-                        <div className="absolute -right-8 -top-8 w-32 h-32 bg-brand-500/20 rounded-full blur-2xl group-hover:bg-brand-500/30 transition-colors" />
+                        <div className="absolute -right-8 -top-8 w-32 h-32 bg-brand-100 rounded-full blur-2xl group-hover:bg-brand-500/30 transition-colors" />
 
-                        <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
-                            <AlertTriangle className="h-5 w-5 text-brand-400" />
+                        <h3 className="text-lg font-semibold text-surface-900 mb-2 flex items-center gap-2">
+                            <AlertTriangle className="h-5 w-5 text-brand-600" />
                             Community Urgency
                         </h3>
-                        <p className="text-surface-400 text-xs mb-4">Number of citizens who voted this as a priority.</p>
+                        <p className="text-surface-500 text-xs mb-4">Number of citizens who voted this as a priority.</p>
 
                         <div className="flex items-center gap-4">
-                            <div className="h-16 w-16 rounded-2xl bg-surface-900 border border-brand-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.15)] group-hover:scale-105 transition-transform duration-300">
-                                <span className="text-2xl font-black text-brand-400">{issue.urgencyCount}</span>
+                            <div className="h-16 w-16 rounded-2xl bg-white border border-brand-200 flex items-center justify-center  group-hover:scale-105 transition-transform duration-300">
+                                <span className="text-2xl font-black text-brand-600">{issue.urgencyCount}</span>
                             </div>
                             <div>
-                                <span className="text-sm font-semibold text-surface-200">Votes</span>
-                                <p className="text-xs text-brand-300 mt-1">High Priority Indicator</p>
+                                <span className="text-sm font-semibold text-surface-700">Votes</span>
+                                <p className="text-xs text-brand-700 mt-1">High Priority Indicator</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Feedback Section (Visible if resolved and feedback exists) */}
                     {feedback && (
-                        <div className="glass-card p-6 border-brand-500/20 shadow-[0_0_20px_rgba(99,102,241,0.05)]">
-                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2 border-b border-white/5 pb-4">
+                        <div className="bg-white border border-surface-200 rounded-xl shadow-sm p-6 border-brand-100 ">
+                            <h3 className="text-lg font-semibold text-surface-900 mb-4 flex items-center gap-2 border-b border-surface-200 pb-4">
                                 <Star className="h-5 w-5 text-warning" />
                                 Citizen Feedback
                             </h3>
@@ -460,11 +465,11 @@ export default function IssueDetailPage(props: Props) {
                                 ))}
                             </div>
                             {feedback.comment ? (
-                                <p className="text-sm text-surface-200 mt-2 italic bg-surface-800/50 p-3 rounded-xl border border-white/5">
+                                <p className="text-sm text-surface-700 mt-2 italic bg-surface-50 p-3 rounded-xl border border-surface-200">
                                     &quot;{feedback.comment}&quot;
                                 </p>
                             ) : (
-                                <p className="text-xs text-surface-400 mt-2">No written review provided.</p>
+                                <p className="text-xs text-surface-500 mt-2">No written review provided.</p>
                             )}
                         </div>
                     )}
@@ -474,39 +479,66 @@ export default function IssueDetailPage(props: Props) {
 
             {/* Assign Technician Modal */}
             {showAssignModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="glass-card w-full max-w-md p-6 mx-4 animate-slide-up">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white border border-surface-200 rounded-xl shadow-sm w-full max-w-md p-6 mx-4 animate-slide-up">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-bold text-white">Assign Technician</h3>
-                            <button onClick={() => setShowAssignModal(false)} className="p-1 rounded-lg text-surface-400 hover:text-white hover:bg-surface-800 transition-colors">
+                            <h3 className="text-lg font-bold text-surface-900">Assign Technician</h3>
+                            <button onClick={() => setShowAssignModal(false)} className="p-1 rounded-lg text-surface-500 hover:text-surface-800 hover:bg-surface-100 transition-colors">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
                         <form onSubmit={handleAssign} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">Technician *</label>
+                                <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">Technician *</label>
                                 <select
                                     title="Select Technician"
                                     value={assignForm.technicianId}
                                     onChange={(e) => setAssignForm({ ...assignForm, technicianId: e.target.value })}
                                     required
-                                    className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                    className="w-full bg-white border border-surface-200 rounded-xl py-2 px-4 text-sm text-surface-900 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
                                 >
                                     <option value="">Select a technician...</option>
-                                    {technicians.filter(t => !t.isDisabled).map(t => (
-                                        <option key={t.id || t._id} value={t.id || t._id}>
-                                            {t.fullName}{t.specialization ? ` — ${t.specialization}` : ''}
-                                        </option>
-                                    ))}
+                                    {technicians
+                                        .filter(t => {
+                                            if (t.isDisabled) return false;
+                                            if (t.department && t.department !== issue?.category) return false;
+                                            
+                                            // Only show technicians whose specialization explicitly includes the issue's subcategory
+                                            if (issue?.subcategory) {
+                                                const specs = Array.isArray(t.specialization) ? t.specialization : [];
+                                                if (!specs.includes(issue.subcategory)) return false;
+                                            }
+                                            
+                                            return true;
+                                        })
+                                        .sort((a, b) => {
+                                            // Alphabetical sort since all displayed technicians are now exact matches
+                                            return a.fullName.localeCompare(b.fullName);
+                                        })
+                                        .map(t => {
+                                            const specs = Array.isArray(t.specialization) ? t.specialization : [];
+                                            const isMatch = issue?.subcategory && specs.includes(issue.subcategory);
+                                            return (
+                                                <option key={t.id || t._id} value={t.id || t._id}>
+                                                    {isMatch ? '⭐ ' : ''}{t.fullName}{specs.length > 0 ? ` — ${specs.join(', ')}` : ''}
+                                                </option>
+                                            );
+                                        })
+                                    }
                                 </select>
+                                {issue?.subcategory && (
+                                    <p className="text-xs text-brand-700 mt-1.5 flex items-center gap-1">
+                                        <span>⭐</span> = specialization matches <span className="font-semibold">&quot;{issue.subcategory}&quot;</span>
+                                    </p>
+                                )}
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">Priority</label>
+                                <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">Priority</label>
                                 <select
                                     title="Select Priority"
                                     value={assignForm.priority}
                                     onChange={(e) => setAssignForm({ ...assignForm, priority: e.target.value })}
-                                    className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                    className="w-full bg-white border border-surface-200 rounded-xl py-2 px-4 text-sm text-surface-900 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
                                 >
                                     <option value="Low">Low</option>
                                     <option value="Medium">Medium</option>
@@ -515,27 +547,27 @@ export default function IssueDetailPage(props: Props) {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">Deadline</label>
+                                <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">Deadline</label>
                                 <input
                                     type="date"
                                     value={assignForm.deadline}
                                     onChange={(e) => setAssignForm({ ...assignForm, deadline: e.target.value })}
-                                    className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                    className="w-full bg-white border border-surface-200 rounded-xl py-2 px-4 text-sm text-surface-900 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">Notes</label>
+                                <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">Notes</label>
                                 <textarea
                                     value={assignForm.notes}
                                     onChange={(e) => setAssignForm({ ...assignForm, notes: e.target.value })}
                                     rows={2}
-                                    className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors resize-none"
+                                    className="w-full bg-white border border-surface-200 rounded-xl py-2 px-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors resize-none"
                                     placeholder="Additional instructions..."
                                 />
                             </div>
                             <div className="pt-2 flex gap-3">
-                                <button type="button" onClick={() => setShowAssignModal(false)} className="flex-1 px-4 py-2.5 rounded-xl bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700 transition-colors text-sm font-medium">Cancel</button>
-                                <button type="submit" disabled={assigning} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white transition-all text-sm font-medium shadow-lg shadow-brand-500/20 disabled:opacity-50">
+                                <button type="button" onClick={() => setShowAssignModal(false)} className="flex-1 px-4 py-2.5 rounded-xl bg-surface-100 text-surface-600 hover:text-surface-800 hover:bg-surface-100 transition-colors text-sm font-medium">Cancel</button>
+                                <button type="submit" disabled={assigning} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-surface-900 transition-all text-sm font-medium shadow-sm disabled:opacity-50">
                                     {assigning ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Assign'}
                                 </button>
                             </div>

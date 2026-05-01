@@ -5,17 +5,22 @@ import { useAuth } from '@/contexts/AuthContext';
 import { User } from '@/types';
 import api from '@/lib/api';
 import {
-    Wrench, Plus, Search, UserCheck, UserX, Edit3, X, Loader2, Phone, Mail, Shield, Star
+    Wrench, Plus, Search, UserCheck, UserX, Edit3, X, Loader2, Phone, Mail, Shield, Star, Tag
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+
+interface SubcategoryData {
+    categories: string[];
+    subcategories: Record<string, string[]>;
+}
 
 interface TechnicianFormData {
     fullName: string;
     email: string;
     password: string;
     phoneNumber: string;
-    specialization: string;
+    specialization: string[];
 }
 
 const initialFormData: TechnicianFormData = {
@@ -23,7 +28,7 @@ const initialFormData: TechnicianFormData = {
     email: '',
     password: '',
     phoneNumber: '',
-    specialization: '',
+    specialization: [],
 };
 
 export default function TechniciansPage() {
@@ -36,6 +41,7 @@ export default function TechniciansPage() {
     const [submitting, setSubmitting] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [toggling, setToggling] = useState<string | null>(null);
+    const [subcategories, setSubcategories] = useState<string[]>([]);
 
     const fetchTechnicians = async () => {
         try {
@@ -50,7 +56,25 @@ export default function TechniciansPage() {
 
     useEffect(() => {
         fetchTechnicians();
-    }, []);
+
+        // Fetch subcategories for the admin's department
+        if (user?.department) {
+            api.get<{ category: string; subcategories: string[] }>(`/subcategories/${user.department}`)
+                .then(res => setSubcategories(res.data.subcategories))
+                .catch(() => {});
+        }
+    }, [user]);
+
+    const toggleSpecialization = (sub: string) => {
+        setFormData(prev => {
+            const current = prev.specialization;
+            if (current.includes(sub)) {
+                return { ...prev, specialization: current.filter(s => s !== sub) };
+            } else {
+                return { ...prev, specialization: [...current, sub] };
+            }
+        });
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -64,7 +88,10 @@ export default function TechniciansPage() {
                     specialization: formData.specialization,
                 });
             } else {
-                await api.post('/admin/technicians', formData);
+                await api.post('/admin/technicians', {
+                    ...formData,
+                    specialization: formData.specialization,
+                });
             }
             setShowModal(false);
             setEditingId(null);
@@ -85,7 +112,7 @@ export default function TechniciansPage() {
             email: tech.email,
             password: '',
             phoneNumber: tech.phoneNumber || '',
-            specialization: tech.specialization || '',
+            specialization: Array.isArray(tech.specialization) ? tech.specialization : (tech.specialization ? [tech.specialization as unknown as string] : []),
         });
         setShowModal(true);
     };
@@ -109,15 +136,16 @@ export default function TechniciansPage() {
     const filteredTechnicians = technicians.filter(t =>
         t.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (t.email && t.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (t.specialization && t.specialization.toLowerCase().includes(searchTerm.toLowerCase()))
+        (Array.isArray(t.specialization) && t.specialization.some(s => s.toLowerCase().includes(searchTerm.toLowerCase())))
     );
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
+            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight">Technicians</h2>
-                    <p className="text-surface-400 text-sm">
+                    <h2 className="text-2xl font-bold text-surface-900 tracking-tight">Technicians</h2>
+                    <p className="text-surface-500 text-sm mt-1">
                         Manage {user?.department} department technicians and field workers.
                     </p>
                 </div>
@@ -131,12 +159,12 @@ export default function TechniciansPage() {
                             placeholder="Search technicians..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full sm:w-56 bg-surface-900 border border-white/5 rounded-xl py-2 pl-9 pr-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full sm:w-56 bg-white border border-surface-300 rounded-lg py-2 pl-9 pr-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
                         />
                     </div>
                     <button
                         onClick={() => { setEditingId(null); setFormData(initialFormData); setShowModal(true); }}
-                        className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-medium transition-all shadow-lg shadow-brand-500/20"
+                        className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
                     >
                         <Plus className="h-4 w-4" />
                         Add Technician
@@ -145,116 +173,127 @@ export default function TechniciansPage() {
             </div>
 
             {/* Technicians Grid */}
-            <div className="glass-card overflow-hidden">
-                {loading ? (
-                    <div className="p-6 space-y-4">
-                        <Skeleton className="h-20 w-full" />
-                        <Skeleton className="h-20 w-full" />
-                        <Skeleton className="h-20 w-full" />
-                    </div>
-                ) : filteredTechnicians.length === 0 ? (
+            {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                </div>
+            ) : filteredTechnicians.length === 0 ? (
+                <div className="bg-white border border-surface-200 rounded-xl">
                     <EmptyState
                         icon={Wrench}
                         title="No Technicians Found"
                         description={searchTerm ? "Try adjusting your search." : "No technicians registered yet. Click 'Add Technician' to get started."}
                     />
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-6">
-                        {filteredTechnicians.map((tech) => {
-                            const techId = tech.id || tech._id || '';
-                            return (
-                                <div
-                                    key={techId}
-                                    className={`glass-card p-5 relative overflow-hidden group transition-all duration-300 hover:shadow-lg ${tech.isDisabled ? 'opacity-60' : ''}`}
-                                >
-                                    {/* Status indicator */}
-                                    <div className={`absolute top-4 right-4 h-3 w-3 rounded-full ${tech.isDisabled ? 'bg-danger' : 'bg-success'} shadow-[0_0_8px] ${tech.isDisabled ? 'shadow-danger/40' : 'shadow-success/40'}`} />
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {filteredTechnicians.map((tech) => {
+                        const techId = tech.id || tech._id || '';
+                        const specs = Array.isArray(tech.specialization) ? tech.specialization : [];
+                        return (
+                            <div
+                                key={techId}
+                                className={`bg-white border border-surface-200 rounded-xl p-5 relative transition-shadow hover:shadow-md ${tech.isDisabled ? 'opacity-60' : ''}`}
+                            >
+                                {/* Status dot */}
+                                <div className={`absolute top-4 right-4 h-2.5 w-2.5 rounded-full ${tech.isDisabled ? 'bg-red-500' : 'bg-emerald-500'}`} />
 
-                                    <div className="flex items-start gap-4">
-                                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-lg font-bold text-white flex-shrink-0 border border-brand-400/30 shadow-[0_0_10px_rgba(20,184,166,0.15)]">
-                                            {tech.fullName.charAt(0)}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-white truncate">{tech.fullName}</h3>
-                                            <div className="flex items-center gap-1.5 mt-1">
-                                                <Mail className="h-3.5 w-3.5 text-surface-400" />
-                                                <span className="text-xs text-surface-300 truncate">{tech.email}</span>
-                                            </div>
-                                            {tech.phoneNumber && (
-                                                <div className="flex items-center gap-1.5 mt-0.5">
-                                                    <Phone className="h-3.5 w-3.5 text-surface-400" />
-                                                    <span className="text-xs text-surface-300">{tech.phoneNumber}</span>
-                                                </div>
-                                            )}
-                                        </div>
+                                <div className="flex items-start gap-4">
+                                    <div className="h-11 w-11 rounded-lg bg-brand-100 flex items-center justify-center text-base font-bold text-brand-700 flex-shrink-0">
+                                        {tech.fullName.charAt(0)}
                                     </div>
-
-                                    {tech.specialization && (
-                                        <div className="mt-3 flex items-center justify-between">
-                                            <div className="flex items-center gap-1.5">
-                                                <Shield className="h-3.5 w-3.5 text-brand-400" />
-                                                <span className="text-xs text-brand-300 font-medium">{tech.specialization}</span>
-                                            </div>
-                                            {(tech.ratingCount ?? 0) > 0 && (
-                                                <div className="flex items-center gap-1 bg-brand-500/10 px-2 py-0.5 rounded-full border border-brand-500/20">
-                                                    <Star className="h-3 w-3 text-brand-400 fill-brand-400" />
-                                                    <span className="text-[10px] font-bold text-brand-300">
-                                                        {tech.averageRating?.toFixed(1)} ({tech.ratingCount})
-                                                    </span>
-                                                </div>
-                                            )}
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-semibold text-surface-900 truncate">{tech.fullName}</h3>
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <Mail className="h-3.5 w-3.5 text-surface-400" />
+                                            <span className="text-xs text-surface-500 truncate">{tech.email}</span>
                                         </div>
-                                    )}
-
-                                    <div className="mt-4 flex items-center gap-2">
-                                        <button
-                                            onClick={() => handleEdit(tech)}
-                                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700 transition-colors text-xs font-medium"
-                                        >
-                                            <Edit3 className="h-3.5 w-3.5" />
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleToggleStatus(tech)}
-                                            disabled={toggling === techId}
-                                            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${tech.isDisabled
-                                                    ? 'bg-success/10 text-success hover:bg-success/20 border border-success/20'
-                                                    : 'bg-danger/10 text-danger hover:bg-danger/20 border border-danger/20'
-                                                }`}
-                                        >
-                                            {toggling === techId ? (
-                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                            ) : tech.isDisabled ? (
-                                                <>
-                                                    <UserCheck className="h-3.5 w-3.5" />
-                                                    Activate
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <UserX className="h-3.5 w-3.5" />
-                                                    Deactivate
-                                                </>
-                                            )}
-                                        </button>
+                                        {tech.phoneNumber && (
+                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                                <Phone className="h-3.5 w-3.5 text-surface-400" />
+                                                <span className="text-xs text-surface-500">{tech.phoneNumber}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
+
+                                {/* Specializations */}
+                                {specs.length > 0 && (
+                                    <div className="mt-3 space-y-2">
+                                        <div className="flex items-center gap-1.5">
+                                            <Shield className="h-3.5 w-3.5 text-brand-600" />
+                                            <span className="text-xs text-surface-500 font-semibold uppercase tracking-wider">Specializations</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {specs.map(s => (
+                                                <span key={s} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-brand-50 text-brand-700 border border-brand-100">
+                                                    <Tag className="h-2.5 w-2.5" />
+                                                    {s}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        {(tech.ratingCount ?? 0) > 0 && (
+                                            <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 w-fit">
+                                                <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                                                <span className="text-[11px] font-bold text-amber-700">
+                                                    {tech.averageRating?.toFixed(1)} ({tech.ratingCount})
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Actions */}
+                                <div className="mt-4 flex items-center gap-2">
+                                    <button
+                                        onClick={() => handleEdit(tech)}
+                                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-surface-50 text-surface-700 hover:bg-surface-100 border border-surface-200 transition-colors text-xs font-medium"
+                                    >
+                                        <Edit3 className="h-3.5 w-3.5" />
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleToggleStatus(tech)}
+                                        disabled={toggling === techId}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors border ${tech.isDisabled
+                                                ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'
+                                                : 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
+                                            }`}
+                                    >
+                                        {toggling === techId ? (
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        ) : tech.isDisabled ? (
+                                            <>
+                                                <UserCheck className="h-3.5 w-3.5" />
+                                                Activate
+                                            </>
+                                        ) : (
+                                            <>
+                                                <UserX className="h-3.5 w-3.5" />
+                                                Deactivate
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
 
             {/* Add/Edit Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="glass-card w-full max-w-md p-6 mx-4 animate-slide-up">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white border border-surface-200 rounded-xl shadow-xl w-full max-w-lg p-6 mx-4 animate-slide-up max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-bold text-white">
+                            <h3 className="text-lg font-bold text-surface-900">
                                 {editingId ? 'Edit Technician' : 'Register New Technician'}
                             </h3>
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="p-1 rounded-lg text-surface-400 hover:text-white hover:bg-surface-800 transition-colors"
+                                className="p-1 rounded-lg text-surface-400 hover:text-surface-900 hover:bg-surface-100 transition-colors"
                             >
                                 <X className="h-5 w-5" />
                             </button>
@@ -262,7 +301,7 @@ export default function TechniciansPage() {
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">
+                                <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">
                                     Full Name *
                                 </label>
                                 <input
@@ -270,7 +309,7 @@ export default function TechniciansPage() {
                                     value={formData.fullName}
                                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                     required
-                                    className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                    className="w-full bg-white border border-surface-300 rounded-lg py-2 px-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
                                     placeholder="Enter full name"
                                 />
                             </div>
@@ -278,7 +317,7 @@ export default function TechniciansPage() {
                             {!editingId && (
                                 <>
                                     <div>
-                                        <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">
+                                        <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">
                                             Email *
                                         </label>
                                         <input
@@ -286,12 +325,12 @@ export default function TechniciansPage() {
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             required
-                                            className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                            className="w-full bg-white border border-surface-300 rounded-lg py-2 px-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
                                             placeholder="technician@example.com"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">
+                                        <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">
                                             Password *
                                         </label>
                                         <input
@@ -300,7 +339,7 @@ export default function TechniciansPage() {
                                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                             required
                                             minLength={6}
-                                            className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                            className="w-full bg-white border border-surface-300 rounded-lg py-2 px-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
                                             placeholder="Minimum 6 characters"
                                         />
                                     </div>
@@ -308,43 +347,74 @@ export default function TechniciansPage() {
                             )}
 
                             <div>
-                                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">
+                                <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">
                                     Phone Number
                                 </label>
                                 <input
                                     type="tel"
                                     value={formData.phoneNumber}
                                     onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                                    className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                    className="w-full bg-white border border-surface-300 rounded-lg py-2 px-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
                                     placeholder="+251 9XX XXX XXXX"
                                 />
                             </div>
 
+                            {/* Specialization Multi-Select */}
                             <div>
-                                <label className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5">
-                                    Specialization
+                                <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">
+                                    Specializations ({user?.department} subcategories)
                                 </label>
-                                <input
-                                    type="text"
-                                    value={formData.specialization}
-                                    onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
-                                    className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 px-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
-                                    placeholder="e.g., Pipe Repair, Electrical Wiring"
-                                />
+                                <div className="bg-surface-50 border border-surface-200 rounded-lg p-3 max-h-48 overflow-y-auto space-y-1.5">
+                                    {subcategories.length === 0 ? (
+                                        <p className="text-xs text-surface-400 italic p-2">No subcategories available</p>
+                                    ) : (
+                                        subcategories.map(sub => {
+                                            const isChecked = formData.specialization.includes(sub);
+                                            return (
+                                                <label
+                                                    key={sub}
+                                                    className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isChecked ? 'bg-brand-50 border border-brand-200' : 'hover:bg-surface-100 border border-transparent'}`}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isChecked}
+                                                        onChange={() => toggleSpecialization(sub)}
+                                                        className="rounded border-surface-300 text-brand-600 focus:ring-brand-500"
+                                                    />
+                                                    <span className={`text-sm ${isChecked ? 'text-brand-700 font-medium' : 'text-surface-700'}`}>
+                                                        {sub}
+                                                    </span>
+                                                </label>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                                {formData.specialization.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5 mt-2">
+                                        {formData.specialization.map(s => (
+                                            <span key={s} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-brand-50 text-brand-700 border border-brand-100">
+                                                {s}
+                                                <button type="button" onClick={() => toggleSpecialization(s)} className="hover:text-red-600">
+                                                    <X className="h-2.5 w-2.5" />
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="pt-2 flex gap-3">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 px-4 py-2.5 rounded-xl bg-surface-800 text-surface-300 hover:text-white hover:bg-surface-700 transition-colors text-sm font-medium"
+                                    className="flex-1 px-4 py-2.5 rounded-lg bg-white text-surface-700 hover:bg-surface-50 border border-surface-300 transition-colors text-sm font-medium"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white transition-all text-sm font-medium shadow-lg shadow-brand-500/20 disabled:opacity-50"
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white transition-colors text-sm font-medium shadow-sm disabled:opacity-50"
                                 >
                                     {submitting ? (
                                         <Loader2 className="h-4 w-4 animate-spin" />

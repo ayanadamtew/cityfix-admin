@@ -9,10 +9,6 @@ import {
     CheckCircle2,
     Clock,
     Activity,
-    Droplet,
-    Trash2,
-    Car,
-    Zap,
     Star
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -21,7 +17,7 @@ import dynamic from 'next/dynamic';
 
 const DashboardMap = dynamic(() => import('@/components/DashboardMap'), {
     ssr: false,
-    loading: () => <Skeleton className="w-full h-full min-h-[400px]" />
+    loading: () => <Skeleton className="w-full h-full min-h-[400px]" />,
 });
 
 export default function DashboardPage() {
@@ -39,7 +35,6 @@ export default function DashboardPage() {
             })
             .catch(err => {
                 console.error('Failed to fetch analytics', err);
-                // Removed mock data fallback so true errors are visible via the EmptyState
                 setLoading(false);
             });
     }, []);
@@ -48,13 +43,13 @@ export default function DashboardPage() {
         return (
             <div className="space-y-6">
                 <Skeleton className="h-10 w-64 mb-8" />
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <Skeleton className="h-32 w-full" />
                     <Skeleton className="h-32 w-full" />
                     <Skeleton className="h-32 w-full" />
                     <Skeleton className="h-32 w-full" />
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
                     <Skeleton className="h-96 w-full" />
                     <Skeleton className="h-96 w-full" />
                 </div>
@@ -67,100 +62,146 @@ export default function DashboardPage() {
     }
 
     const kpis = [
-        { label: 'Total Issues Reported', value: data.totalIssues, icon: Activity, color: 'text-brand-400' },
-        { label: 'Pending Issues', value: data.byStatus.Pending, icon: AlertTriangle, color: 'text-warning' },
-        { label: 'Avg. Resolution (Days)', value: data.avgResolutionTimeDays, icon: Clock, color: 'text-info' },
-        { label: 'Citizen Satisfaction', value: `${data.avgFeedbackRating} / 5.0`, icon: Star, color: 'text-success' },
+        { label: 'Total Issues', value: data.totalIssues, icon: Activity, bgColor: 'bg-blue-50', iconColor: 'text-blue-600' },
+        { label: 'Pending', value: data.byStatus.Pending, icon: AlertTriangle, bgColor: 'bg-amber-50', iconColor: 'text-amber-600' },
+        { label: 'Avg. Resolution (Days)', value: data.avgResolutionTimeDays, icon: Clock, bgColor: 'bg-sky-50', iconColor: 'text-sky-600' },
+        { label: 'Satisfaction', value: `${data.avgFeedbackRating} / 5.0`, icon: Star, bgColor: 'bg-emerald-50', iconColor: 'text-emerald-600' },
     ];
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight">
-                        {isSuperAdmin ? 'City Overview' : `${user?.department} Overview`}
-                    </h2>
-                    <p className="text-surface-400 text-sm">
-                        {isSuperAdmin ? 'Real-time analytical metrics for all sectors.' : `Real-time analytical metrics for the ${user?.department} sector.`}
-                    </p>
-                </div>
+            {/* Page Header */}
+            <div>
+                <h2 className="text-2xl font-bold text-surface-900 tracking-tight">
+                    {isSuperAdmin ? 'City Overview' : `${user?.department} Overview`}
+                </h2>
+                <p className="text-surface-500 text-sm mt-1">
+                    {isSuperAdmin ? 'Real-time analytical metrics for all sectors.' : `Real-time analytical metrics for the ${user?.department} sector.`}
+                </p>
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {kpis.map((kpi, index) => {
                     const Icon = kpi.icon;
                     return (
-                        <div key={index} className="glass-card p-6 flex flex-col items-start hover:bg-surface-800/80 transition-all duration-300 group hover:shadow-[0_0_25px_rgba(20,184,166,0.15)] hover:-translate-y-1 relative overflow-hidden border border-white/[0.05]">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 rounded-full blur-3xl -mr-10 -mt-10 transition-all duration-500 group-hover:bg-brand-500/20" />
-                            <div className={`p-3 rounded-xl bg-surface-950 shadow-inner mb-4 border border-white/[0.05] relative z-10`}>
-                                <Icon className={`h-6 w-6 ${kpi.color} drop-shadow-[0_0_8px_currentColor]`} />
+                        <div key={index} className="bg-white border border-surface-200 rounded-xl p-5 hover:shadow-md transition-shadow">
+                            <div className="flex items-center gap-4">
+                                <div className={`p-3 rounded-lg ${kpi.bgColor}`}>
+                                    <Icon className={`h-5 w-5 ${kpi.iconColor}`} />
+                                </div>
+                                <div>
+                                    <p className="text-surface-500 text-xs font-medium uppercase tracking-wide">{kpi.label}</p>
+                                    <h4 className="text-2xl font-bold text-surface-900 mt-0.5">{kpi.value}</h4>
+                                </div>
                             </div>
-                            <p className="text-surface-400 text-sm font-medium mb-1 relative z-10">{kpi.label}</p>
-                            <h4 className="text-3xl font-bold text-white relative z-10 glow-text">{kpi.value}</h4>
                         </div>
                     );
                 })}
             </div>
 
-            {/* Charts Placeholder grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
-                <div className="glass-card p-6 min-h-[400px]">
-                    <h3 className="text-lg font-semibold text-white mb-6">Issues by Category</h3>
-                    <div className="flex bg-surface-900/50 rounded-xl items-center justify-center p-8 h-[300px] border border-white/5">
-                        {/* Chart implementation will go here */}
-                        <div className="flex items-end justify-center gap-4 h-full w-full pb-4 px-4">
-                            {Object.entries(data.byCategory).map(([cat, count]) => (
-                                <div key={cat} className="flex flex-col items-center flex-1 gap-3 group relative">
-                                    <span className="text-sm font-bold text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-[0_0_8px_currentColor] absolute -top-8">{count}</span>
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Category Bar Chart */}
+                <div className="bg-white border border-surface-200 rounded-xl p-6">
+                    <h3 className="text-base font-semibold text-surface-900 mb-6">Issues by Category</h3>
+                    <div className="flex items-end justify-center gap-4 h-[260px] pb-4 px-4">
+                        {Object.entries(data.byCategory).map(([cat, count]) => {
+                            const catColors: Record<string, string> = {
+                                Water: 'bg-blue-500',
+                                Road: 'bg-amber-500',
+                                Electricity: 'bg-yellow-500',
+                                Waste: 'bg-emerald-500',
+                            };
+                            const barColor = catColors[cat] || 'bg-brand-500';
+                            return (
+                                <div key={cat} className="flex flex-col items-center flex-1 gap-2 group">
+                                    <span className="text-xs font-bold text-surface-900">{count}</span>
                                     <div
-                                        className="w-full bg-gradient-to-t from-brand-600 to-brand-400 rounded-t-lg transition-all duration-1000 ease-out min-h-[20px] shadow-[0_0_15px_rgba(20,184,166,0.2)] group-hover:shadow-[0_0_20px_rgba(20,184,166,0.6)] group-hover:from-brand-500 group-hover:to-brand-300 relative overflow-hidden"
-                                        style={{ height: `${(count / Math.max(...Object.values(data.byCategory))) * 200}px` }}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[150%] group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                                    </div>
-                                    <span className="text-xs text-surface-400 font-medium rotate-45 md:rotate-0 mt-2 transition-colors group-hover:text-surface-200">{cat}</span>
+                                        className={`w-full ${barColor} rounded-t-md transition-all duration-700 min-h-[8px]`}
+                                        style={{ height: `${(count / Math.max(...Object.values(data.byCategory), 1)) * 200}px` }}
+                                    />
+                                    <span className="text-xs text-surface-500 font-medium text-center">{cat}</span>
                                 </div>
-                            ))}
-                        </div>
+                            );
+                        })}
                     </div>
                 </div>
 
-                <div className="glass-card p-6 min-h-[400px]">
-                    <h3 className="text-lg font-semibold text-white mb-6">Issues by Status</h3>
-                    <div className="flex bg-surface-900/50 rounded-xl items-center justify-center p-8 h-[300px] border border-white/5 relative">
-                        {/* Very simple mock pie chart using conic gradient */}
+                {/* Status Pie Chart */}
+                <div className="bg-white border border-surface-200 rounded-xl p-6">
+                    <h3 className="text-base font-semibold text-surface-900 mb-6">Issues by Status</h3>
+                    <div className="flex items-center justify-center gap-8 h-[260px]">
                         <div
-                            className="w-48 h-48 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(0,0,0,0.5)] mr-8 relative overflow-hidden border border-white/5"
-                        >
-                            <div className="w-full h-full drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" style={{
+                            className="w-44 h-44 rounded-full shadow-sm border border-surface-100"
+                            style={{
                                 background: `conic-gradient(var(--color-warning) 0% 29%, var(--color-info) 29% 50%, var(--color-success) 50% 100%)`
-                            }}></div>
-                        </div>
+                            }}
+                        />
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-3 h-3 rounded-full bg-warning" />
-                                <span className="text-sm text-surface-200">Pending <span className="text-white font-bold ml-2">{data.byStatus.Pending}</span></span>
+                                <span className="text-sm text-surface-600">Pending <span className="text-surface-900 font-bold ml-1">{data.byStatus.Pending}</span></span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <div className="w-3 h-3 rounded-full bg-info" />
-                                <span className="text-sm text-surface-200">In Progress <span className="text-white font-bold ml-2">{data.byStatus['In Progress']}</span></span>
+                                <span className="text-sm text-surface-600">In Progress <span className="text-surface-900 font-bold ml-1">{data.byStatus['In Progress']}</span></span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <div className="w-3 h-3 rounded-full bg-success" />
-                                <span className="text-sm text-surface-200">Resolved <span className="text-white font-bold ml-2">{data.byStatus.Resolved}</span></span>
+                                <span className="text-sm text-surface-600">Resolved <span className="text-surface-900 font-bold ml-1">{data.byStatus.Resolved}</span></span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Map Hotspots */}
-            <div className="glass-card p-6 min-h-[500px] flex flex-col mt-4 border border-white/[0.05] relative overflow-hidden group">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mt-32 transition-all duration-700 group-hover:bg-brand-500/10" />
-                <h3 className="text-lg font-semibold text-white mb-2 relative z-10 glow-text">Geographic Report Hotspots</h3>
-                <p className="text-sm text-surface-400 mb-6 relative z-10">Density of citizen issue reports across municipality zones.</p>
-                <div className="flex-1 rounded-xl overflow-hidden bg-surface-950 border border-white/[0.1] relative min-h-[400px] shadow-[0_0_30px_rgba(0,0,0,0.5)] z-10">
+            {/* Subcategory Breakdown */}
+            {data.bySubcategory && Object.keys(data.bySubcategory).length > 0 && (
+                <div className="bg-white border border-surface-200 rounded-xl p-6">
+                    <h3 className="text-base font-semibold text-surface-900 mb-6">Issues by Subcategory</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {Object.entries(data.bySubcategory).map(([cat, subs]) => {
+                            const catConfig: Record<string, { bar: string; label: string }> = {
+                                Water: { bar: 'bg-blue-500', label: 'text-blue-700' },
+                                Road: { bar: 'bg-amber-500', label: 'text-amber-700' },
+                                Electricity: { bar: 'bg-yellow-500', label: 'text-yellow-700' },
+                                Waste: { bar: 'bg-emerald-500', label: 'text-emerald-700' },
+                            };
+                            const cfg = catConfig[cat] || catConfig.Water;
+                            const maxCount = Math.max(...Object.values(subs), 1);
+
+                            return (
+                                <div key={cat} className="bg-surface-50 rounded-lg p-5 border border-surface-200">
+                                    <h4 className={`text-sm font-bold ${cfg.label} uppercase tracking-wider mb-4`}>
+                                        {cat === 'Waste' ? 'Waste Management' : cat}
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {Object.entries(subs).sort((a, b) => b[1] - a[1]).map(([sub, count]) => (
+                                            <div key={sub} className="flex items-center gap-3">
+                                                <span className="text-xs text-surface-600 w-36 truncate flex-shrink-0" title={sub}>{sub}</span>
+                                                <div className="flex-1 bg-surface-200 rounded-full h-2 overflow-hidden">
+                                                    <div
+                                                        className={`h-full rounded-full ${cfg.bar} transition-all duration-700`}
+                                                        style={{ width: `${(count / maxCount) * 100}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-xs font-bold text-surface-900 w-8 text-right">{count}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* Map */}
+            <div className="bg-white border border-surface-200 rounded-xl p-6 min-h-[500px] flex flex-col">
+                <h3 className="text-base font-semibold text-surface-900 mb-1">Geographic Report Hotspots</h3>
+                <p className="text-sm text-surface-500 mb-4">Density of citizen issue reports across municipality zones.</p>
+                <div className="flex-1 rounded-lg overflow-hidden border border-surface-200 min-h-[400px]">
                     <DashboardMap locations={data.locations} />
                 </div>
             </div>

@@ -40,13 +40,13 @@ export function AddAdminModal({ isOpen, onClose, onAdd }: AddAdminModalProps) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="glass-card relative w-full max-w-md p-6 bg-surface-900 border border-white/10 shadow-2xl rounded-2xl">
+            <div className="absolute inset-0 bg-surface-900/40 backdrop-blur-sm" onClick={onClose} />
+            <div className="bg-white border border-surface-200 rounded-xl shadow-sm relative w-full max-w-md p-6 bg-white border border-surface-200 shadow-2xl rounded-2xl">
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-white">Create Sector Admin</h3>
+                    <h3 className="text-xl font-bold text-surface-900">Create Sector Admin</h3>
                     <button
                         onClick={onClose}
-                        className="p-1.5 text-surface-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+                        className="p-1.5 text-surface-500 hover:text-surface-800 rounded-lg hover:bg-white/5 transition-colors"
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -60,49 +60,49 @@ export function AddAdminModal({ isOpen, onClose, onAdd }: AddAdminModalProps) {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-surface-200 mb-1.5">Full Name</label>
+                        <label className="block text-sm font-medium text-surface-700 mb-1.5">Full Name</label>
                         <input
                             type="text"
                             required
                             value={formData.fullName}
                             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                            className="w-full bg-surface-800 border border-white/5 rounded-xl py-2 px-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full bg-surface-100 border border-surface-200 rounded-xl py-2 px-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
                             placeholder="John Doe"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-surface-200 mb-1.5">Email Address</label>
+                        <label className="block text-sm font-medium text-surface-700 mb-1.5">Email Address</label>
                         <input
                             type="email"
                             required
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="w-full bg-surface-800 border border-white/5 rounded-xl py-2 px-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full bg-surface-100 border border-surface-200 rounded-xl py-2 px-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
                             placeholder="admin@cityfix.gov"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-surface-200 mb-1.5">Temporary Password</label>
+                        <label className="block text-sm font-medium text-surface-700 mb-1.5">Temporary Password</label>
                         <input
                             type="password"
                             required
                             minLength={6}
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            className="w-full bg-surface-800 border border-white/5 rounded-xl py-2 px-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full bg-surface-100 border border-surface-200 rounded-xl py-2 px-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
                             placeholder="••••••••"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-surface-200 mb-1.5">Sector / Department</label>
+                        <label className="block text-sm font-medium text-surface-700 mb-1.5">Sector / Department</label>
                         <select
                             required
                             value={formData.department}
                             onChange={(e) => setFormData({ ...formData, department: e.target.value as Department })}
-                            className="w-full bg-surface-800 border border-white/5 rounded-xl py-2 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors appearance-none cursor-pointer"
+                            className="w-full bg-surface-100 border border-surface-200 rounded-xl py-2 px-4 text-sm text-surface-900 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors appearance-none cursor-pointer"
                         >
                             <option value="Water">Water & Sewage</option>
                             <option value="Road">Road & Transport</option>
@@ -115,14 +115,14 @@ export function AddAdminModal({ isOpen, onClose, onAdd }: AddAdminModalProps) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 bg-surface-800 hover:bg-surface-700 text-white text-sm font-medium rounded-xl transition-colors"
+                            className="flex-1 px-4 py-2 bg-surface-100 hover:bg-surface-100 text-surface-900 text-sm font-medium rounded-xl transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-all shadow-lg shadow-brand-500/20"
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-surface-900 text-sm font-medium rounded-xl transition-all shadow-sm"
                         >
                             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Admin'}
                         </button>

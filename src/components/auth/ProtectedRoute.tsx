@@ -29,8 +29,8 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
     if (loading) {
         return (
-            <div className="flex h-screen w-full items-center justify-center bg-surface-950">
-                <Loader2 className="h-10 w-10 animate-spin text-brand-500" />
+            <div className="flex h-screen w-full items-center justify-center bg-surface-50">
+                <Loader2 className="h-10 w-10 animate-spin text-brand-600" />
             </div>
         );
     }

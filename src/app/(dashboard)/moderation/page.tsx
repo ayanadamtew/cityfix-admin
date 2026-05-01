@@ -88,12 +88,12 @@ export default function ModerationPage() {
         <div className="max-w-6xl mx-auto space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight">Content Moderation</h2>
-                    <p className="text-surface-400 text-sm">Review issues that citizens have flagged as inappropriate or spam.</p>
+                    <h2 className="text-2xl font-bold text-surface-900 tracking-tight">Content Moderation</h2>
+                    <p className="text-surface-500 text-sm">Review issues that citizens have flagged as inappropriate or spam.</p>
                 </div>
             </div>
 
-            <div className="glass-card overflow-hidden">
+            <div className="bg-white border border-surface-200 rounded-xl shadow-sm overflow-hidden">
                 {loading ? (
                     <div className="p-6 space-y-4">
                         <Skeleton className="h-24 w-full" />
@@ -115,16 +115,16 @@ export default function ModerationPage() {
                                         <ShieldAlert className="h-4 w-4" />
                                         <span className="font-semibold text-sm uppercase tracking-wider">Flagged</span>
                                     </div>
-                                    <p className="text-white font-medium mb-1">{report.reason}</p>
-                                    <p className="text-xs text-surface-400">Reported by {report.reporter?.fullName}</p>
+                                    <p className="text-surface-900 font-medium mb-1">{report.reason}</p>
+                                    <p className="text-xs text-surface-500">Reported by {report.reporter?.fullName}</p>
                                 </div>
 
                                 {/* Content Preview */}
-                                <div className="flex-1 bg-surface-900/50 rounded-lg p-4 border border-white/5">
-                                    <p className="text-surface-200 text-sm line-clamp-2 mb-3">&quot;{report.issue?.description}&quot;</p>
+                                <div className="flex-1 bg-surface-50 rounded-lg p-4 border border-surface-200">
+                                    <p className="text-surface-700 text-sm line-clamp-2 mb-3">&quot;{report.issue?.description}&quot;</p>
                                     <Link
                                         href={`/issues/${report.issue?.id || (report.issue as any)?._id}`}
-                                        className="inline-flex items-center gap-1.5 text-brand-400 hover:text-brand-300 transition-colors text-xs font-semibold uppercase tracking-wider"
+                                        className="inline-flex items-center gap-1.5 text-brand-600 hover:text-brand-700 transition-colors text-xs font-semibold uppercase tracking-wider"
                                     >
                                         Review full issue context <ExternalLink className="h-3.5 w-3.5" />
                                     </Link>
@@ -135,7 +135,7 @@ export default function ModerationPage() {
                                     <button
                                         onClick={() => handleDismiss(report.id)}
                                         disabled={actioning === `dismiss-${report.id}` || actioning === `delete-${report.id}`}
-                                        className="w-full justify-center flex items-center gap-2 px-4 py-2 bg-surface-800 hover:bg-surface-700 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
+                                        className="w-full justify-center flex items-center gap-2 px-4 py-2 bg-surface-100 hover:bg-surface-100 text-surface-900 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
                                     >
                                         {actioning === `dismiss-${report.id}` ? <RefreshCw className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 text-success" />}
                                         Dismiss Flag

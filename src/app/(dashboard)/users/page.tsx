@@ -83,12 +83,12 @@ export default function UsersPage() {
         );
 
         return (
-            <div className="glass-card overflow-hidden">
-                <div className="p-4 border-b border-white/5 flex items-center justify-between bg-surface-900/50">
-                    <h3 className="font-semibold text-white">Registered Sector Admins</h3>
+            <div className="bg-white border border-surface-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-surface-200 flex items-center justify-between bg-surface-50">
+                    <h3 className="font-semibold text-surface-900">Registered Sector Admins</h3>
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-brand-500/20"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-surface-900 text-sm font-medium rounded-lg transition-colors shadow-sm"
                     >
                         <Plus className="h-4 w-4" />
                         New Admin
@@ -96,7 +96,7 @@ export default function UsersPage() {
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm whitespace-nowrap">
-                        <thead className="bg-surface-900 text-surface-400 border-b border-white/5">
+                        <thead className="bg-white text-surface-500 border-b border-surface-200">
                             <tr>
                                 <th className="px-6 py-4 font-semibold tracking-wider">Name</th>
                                 <th className="px-6 py-4 font-semibold tracking-wider">Email</th>
@@ -110,21 +110,21 @@ export default function UsersPage() {
                                 <tr key={admin._id} className="hover:bg-white/[0.02] transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded-full bg-brand-500 flex items-center justify-center font-bold text-white uppercase flex-shrink-0">
+                                            <div className="h-8 w-8 rounded-full bg-brand-500 flex items-center justify-center font-bold text-surface-900 uppercase flex-shrink-0">
                                                 {admin.fullName.charAt(0)}
                                             </div>
-                                            <span className="font-medium text-white">{admin.fullName}</span>
+                                            <span className="font-medium text-surface-900">{admin.fullName}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-surface-300">{admin.email}</span>
+                                        <span className="text-surface-600">{admin.email}</span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-surface-800 text-brand-300 border border-white/5">
+                                        <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-surface-100 text-brand-700 border border-surface-200">
                                             {admin.department}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-surface-400">
+                                    <td className="px-6 py-4 text-surface-500">
                                         {new Date(admin.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 text-right">
@@ -141,7 +141,7 @@ export default function UsersPage() {
                                                     {actioning === admin._id ? 'Updating...' : (admin.isDisabled ? 'Activate' : 'Suspend')}
                                                 </button>
                                             ) : (
-                                                <span className="text-xs text-surface-400 font-medium px-2">Super Admin</span>
+                                                <span className="text-xs text-surface-500 font-medium px-2">Super Admin</span>
                                             )}
                                         </div>
                                     </td>
@@ -158,13 +158,13 @@ export default function UsersPage() {
         const filteredCitizens = citizens.filter(cit => cit.fullName.toLowerCase().includes(searchTerm.toLowerCase()));
 
         return (
-            <div className="glass-card overflow-hidden">
-                <div className="p-4 border-b border-white/5 bg-surface-900/50">
-                    <h3 className="font-semibold text-white">Registered Citizens</h3>
+            <div className="bg-white border border-surface-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-surface-200 bg-surface-50">
+                    <h3 className="font-semibold text-surface-900">Registered Citizens</h3>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm whitespace-nowrap">
-                        <thead className="bg-surface-900 text-surface-400 border-b border-white/5">
+                        <thead className="bg-white text-surface-500 border-b border-surface-200">
                             <tr>
                                 <th className="px-6 py-4 font-semibold tracking-wider">Name</th>
                                 <th className="px-6 py-4 font-semibold tracking-wider">Email</th>
@@ -178,19 +178,19 @@ export default function UsersPage() {
                                 <tr key={cit._id} className="hover:bg-white/[0.02] transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded-full bg-surface-700 flex items-center justify-center font-bold text-white uppercase flex-shrink-0 border border-white/5">
+                                            <div className="h-8 w-8 rounded-full bg-surface-700 flex items-center justify-center font-bold text-surface-900 uppercase flex-shrink-0 border border-surface-200">
                                                 {cit.fullName.charAt(0)}
                                             </div>
-                                            <span className="font-medium text-white">{cit.fullName}</span>
+                                            <span className="font-medium text-surface-900">{cit.fullName}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-surface-300">{cit.email}</span>
+                                        <span className="text-surface-600">{cit.email}</span>
                                     </td>
-                                    <td className="px-6 py-4 text-surface-400">
+                                    <td className="px-6 py-4 text-surface-500">
                                         {cit.phoneNumber || 'N/A'}
                                     </td>
-                                    <td className="px-6 py-4 text-surface-400">
+                                    <td className="px-6 py-4 text-surface-500">
                                         {new Date(cit.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 text-right">
@@ -218,8 +218,8 @@ export default function UsersPage() {
         <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight">System Users</h2>
-                    <p className="text-surface-400 text-sm">Manage municipality workforce and oversee citizen accounts.</p>
+                    <h2 className="text-2xl font-bold text-surface-900 tracking-tight">System Users</h2>
+                    <p className="text-surface-500 text-sm">Manage municipality workforce and oversee citizen accounts.</p>
                 </div>
             </div>
 
@@ -229,21 +229,21 @@ export default function UsersPage() {
                     <button
                         onClick={() => setActiveTab('admins')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'admins'
-                            ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
-                            : 'text-surface-300 hover:bg-surface-800 hover:text-white border border-transparent'
+                            ? 'bg-brand-50 text-brand-600 border border-brand-100 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
+                            : 'text-surface-600 hover:bg-surface-100 hover:text-surface-800 border border-transparent'
                             }`}
                     >
-                        <Shield className={`h-5 w-5 ${activeTab === 'admins' ? 'text-brand-400' : 'text-surface-400'}`} />
+                        <Shield className={`h-5 w-5 ${activeTab === 'admins' ? 'text-brand-600' : 'text-surface-500'}`} />
                         Sector Admins
                     </button>
                     <button
                         onClick={() => setActiveTab('citizens')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'citizens'
-                            ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
-                            : 'text-surface-300 hover:bg-surface-800 hover:text-white border border-transparent'
+                            ? 'bg-brand-50 text-brand-600 border border-brand-100 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
+                            : 'text-surface-600 hover:bg-surface-100 hover:text-surface-800 border border-transparent'
                             }`}
                     >
-                        <UsersIcon className={`h-5 w-5 ${activeTab === 'citizens' ? 'text-brand-400' : 'text-surface-400'}`} />
+                        <UsersIcon className={`h-5 w-5 ${activeTab === 'citizens' ? 'text-brand-600' : 'text-surface-500'}`} />
                         Citizens
                     </button>
                 </div>
@@ -252,19 +252,19 @@ export default function UsersPage() {
                 <div className="flex-1 space-y-4">
                     <div className="relative group max-w-md">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <Search className="h-4 w-4 text-surface-400" />
+                            <Search className="h-4 w-4 text-surface-500" />
                         </div>
                         <input
                             type="text"
                             placeholder={`Search ${activeTab === 'admins' ? 'administrators' : 'citizens'}...`}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-surface-900 border border-white/5 rounded-xl py-2 pl-9 pr-4 text-sm text-white placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full bg-white border border-surface-200 rounded-xl py-2 pl-9 pr-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
                         />
                     </div>
 
                     {loading ? (
-                        <div className="glass-card p-6 space-y-4">
+                        <div className="bg-white border border-surface-200 rounded-xl shadow-sm p-6 space-y-4">
                             <Skeleton className="h-12 w-full" />
                             <Skeleton className="h-12 w-full" />
                             <Skeleton className="h-12 w-full" />
