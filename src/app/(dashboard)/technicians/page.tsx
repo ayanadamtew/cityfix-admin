@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { User } from '@/types';
 import api from '@/lib/api';
 import {
-    Wrench, Plus, Search, UserCheck, UserX, Edit3, X, Loader2, Phone, Mail, Shield, Star, Tag
+    Wrench, Plus, Search, UserCheck, UserX, Edit3, X, Loader2, Phone, Mail, Shield, Star, Tag, Key
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -18,7 +18,6 @@ interface SubcategoryData {
 interface TechnicianFormData {
     fullName: string;
     email: string;
-    password: string;
     phoneNumber: string;
     specialization: string[];
 }
@@ -26,7 +25,6 @@ interface TechnicianFormData {
 const initialFormData: TechnicianFormData = {
     fullName: '',
     email: '',
-    password: '',
     phoneNumber: '',
     specialization: [],
 };
@@ -41,6 +39,8 @@ export default function TechniciansPage() {
     const [submitting, setSubmitting] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [toggling, setToggling] = useState<string | null>(null);
+    const [resetting, setResetting] = useState<string | null>(null);
+    const [techToReset, setTechToReset] = useState<User | null>(null);
     const [subcategories, setSubcategories] = useState<string[]>([]);
 
     const fetchTechnicians = async () => {
@@ -110,7 +110,6 @@ export default function TechniciansPage() {
         setFormData({
             fullName: tech.fullName,
             email: tech.email,
-            password: '',
             phoneNumber: tech.phoneNumber || '',
             specialization: Array.isArray(tech.specialization) ? tech.specialization : (tech.specialization ? [tech.specialization as unknown as string] : []),
         });
@@ -130,6 +129,24 @@ export default function TechniciansPage() {
             console.error('Failed to toggle status:', err);
         } finally {
             setToggling(null);
+        }
+    };
+
+    const handleResetPassword = async () => {
+        if (!techToReset) return;
+        const techId = techToReset.id || techToReset._id;
+        if (!techId) return;
+        
+        setResetting(techId);
+        try {
+            await api.post(`/admin/technicians/${techId}/credentials/reset`);
+            alert(`Password reset successfully. New credentials have been emailed to ${techToReset.email}.`);
+            setTechToReset(null);
+        } catch (err: any) {
+            console.error('Failed to reset password:', err);
+            alert(err.response?.data?.message || 'Failed to reset password.');
+        } finally {
+            setResetting(null);
         }
     };
 
@@ -249,15 +266,29 @@ export default function TechniciansPage() {
                                 <div className="mt-4 flex items-center gap-2">
                                     <button
                                         onClick={() => handleEdit(tech)}
-                                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-surface-50 text-surface-700 hover:bg-surface-100 border border-surface-200 transition-colors text-xs font-medium"
+                                        className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-surface-50 text-surface-700 hover:bg-surface-100 border border-surface-200 transition-colors text-xs font-medium"
                                     >
                                         <Edit3 className="h-3.5 w-3.5" />
                                         Edit
                                     </button>
                                     <button
+                                        onClick={() => setTechToReset(tech)}
+                                        disabled={resetting === techId}
+                                        className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-surface-50 text-surface-700 hover:bg-surface-100 border border-surface-200 transition-colors text-xs font-medium"
+                                    >
+                                        {resetting === techId ? (
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Key className="h-3.5 w-3.5" />
+                                                Reset Pwd
+                                            </>
+                                        )}
+                                    </button>
+                                    <button
                                         onClick={() => handleToggleStatus(tech)}
                                         disabled={toggling === techId}
-                                        className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors border ${tech.isDisabled
+                                        className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-medium transition-colors border ${tech.isDisabled
                                                 ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'
                                                 : 'bg-red-50 text-red-700 hover:bg-red-100 border-red-200'
                                             }`}
@@ -327,20 +358,6 @@ export default function TechniciansPage() {
                                             required
                                             className="w-full bg-white border border-surface-300 rounded-lg py-2 px-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
                                             placeholder="technician@example.com"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">
-                                            Password *
-                                        </label>
-                                        <input
-                                            type="password"
-                                            value={formData.password}
-                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                            required
-                                            minLength={6}
-                                            className="w-full bg-white border border-surface-300 rounded-lg py-2 px-4 text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
-                                            placeholder="Minimum 6 characters"
                                         />
                                     </div>
                                 </>
@@ -426,6 +443,53 @@ export default function TechniciansPage() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Reset Password Confirmation Modal */}
+            {techToReset && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white border border-surface-200 rounded-xl shadow-xl w-full max-w-sm p-6 mx-4 animate-slide-up">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold text-surface-900">Reset Password</h3>
+                            <button
+                                onClick={() => !resetting && setTechToReset(null)}
+                                disabled={resetting !== null}
+                                className="p-1 rounded-lg text-surface-400 hover:text-surface-900 hover:bg-surface-100 transition-colors disabled:opacity-50"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <p className="text-sm text-surface-600 mb-6 leading-relaxed">
+                            Are you sure you want to reset the password for <span className="font-semibold text-surface-900">{techToReset.fullName}</span>? 
+                            New credentials will be generated and emailed to them.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setTechToReset(null)}
+                                disabled={resetting !== null}
+                                className="flex-1 px-4 py-2 rounded-lg bg-white text-surface-700 hover:bg-surface-50 border border-surface-300 transition-colors text-sm font-medium disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleResetPassword}
+                                disabled={resetting !== null}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition-colors text-sm font-medium shadow-sm disabled:opacity-50"
+                            >
+                                {resetting !== null ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <>
+                                        <Key className="h-4 w-4" />
+                                        Reset
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

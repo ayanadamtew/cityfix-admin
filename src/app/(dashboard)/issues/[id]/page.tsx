@@ -517,20 +517,14 @@ export default function IssueDetailPage(props: Props) {
                                         })
                                         .map(t => {
                                             const specs = Array.isArray(t.specialization) ? t.specialization : [];
-                                            const isMatch = issue?.subcategory && specs.includes(issue.subcategory);
                                             return (
                                                 <option key={t.id || t._id} value={t.id || t._id}>
-                                                    {isMatch ? '⭐ ' : ''}{t.fullName}{specs.length > 0 ? ` — ${specs.join(', ')}` : ''}
+                                                    {t.fullName}{specs.length > 0 ? ` — ${specs.join(', ')}` : ''}
                                                 </option>
                                             );
                                         })
                                     }
                                 </select>
-                                {issue?.subcategory && (
-                                    <p className="text-xs text-brand-700 mt-1.5 flex items-center gap-1">
-                                        <span>⭐</span> = specialization matches <span className="font-semibold">&quot;{issue.subcategory}&quot;</span>
-                                    </p>
-                                )}
                             </div>
                             <div>
                                 <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">Priority</label>
