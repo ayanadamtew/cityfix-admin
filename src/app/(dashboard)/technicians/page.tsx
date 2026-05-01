@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 interface SubcategoryData {
     categories: string[];
@@ -41,6 +42,7 @@ export default function TechniciansPage() {
     const [toggling, setToggling] = useState<string | null>(null);
     const [resetting, setResetting] = useState<string | null>(null);
     const [techToReset, setTechToReset] = useState<User | null>(null);
+    const [techToToggle, setTechToToggle] = useState<User | null>(null);
     const [subcategories, setSubcategories] = useState<string[]>([]);
 
     const fetchTechnicians = async () => {
@@ -116,15 +118,17 @@ export default function TechniciansPage() {
         setShowModal(true);
     };
 
-    const handleToggleStatus = async (tech: User) => {
-        const techId = tech.id || tech._id;
+    const handleToggleStatus = async () => {
+        if (!techToToggle) return;
+        const techId = techToToggle.id || techToToggle._id;
         if (!techId) return;
         setToggling(techId);
         try {
             await api.put(`/admin/technicians/${techId}/status`, {
-                isDisabled: !tech.isDisabled,
+                isDisabled: !techToToggle.isDisabled,
             });
             fetchTechnicians();
+            setTechToToggle(null);
         } catch (err) {
             console.error('Failed to toggle status:', err);
         } finally {
@@ -286,7 +290,7 @@ export default function TechniciansPage() {
                                         )}
                                     </button>
                                     <button
-                                        onClick={() => handleToggleStatus(tech)}
+                                        onClick={() => setTechToToggle(tech)}
                                         disabled={toggling === techId}
                                         className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-medium transition-colors border ${tech.isDisabled
                                                 ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200'
@@ -448,51 +452,37 @@ export default function TechniciansPage() {
             )}
 
             {/* Reset Password Confirmation Modal */}
-            {techToReset && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white border border-surface-200 rounded-xl shadow-xl w-full max-w-sm p-6 mx-4 animate-slide-up">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-surface-900">Reset Password</h3>
-                            <button
-                                onClick={() => !resetting && setTechToReset(null)}
-                                disabled={resetting !== null}
-                                className="p-1 rounded-lg text-surface-400 hover:text-surface-900 hover:bg-surface-100 transition-colors disabled:opacity-50"
-                            >
-                                <X className="h-5 w-5" />
-                            </button>
-                        </div>
-                        <p className="text-sm text-surface-600 mb-6 leading-relaxed">
-                            Are you sure you want to reset the password for <span className="font-semibold text-surface-900">{techToReset.fullName}</span>? 
-                            New credentials will be generated and emailed to them.
-                        </p>
-                        <div className="flex gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setTechToReset(null)}
-                                disabled={resetting !== null}
-                                className="flex-1 px-4 py-2 rounded-lg bg-white text-surface-700 hover:bg-surface-50 border border-surface-300 transition-colors text-sm font-medium disabled:opacity-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleResetPassword}
-                                disabled={resetting !== null}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition-colors text-sm font-medium shadow-sm disabled:opacity-50"
-                            >
-                                {resetting !== null ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    <>
-                                        <Key className="h-4 w-4" />
-                                        Reset
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmModal
+                isOpen={!!techToReset}
+                title="Reset Password"
+                message={
+                    <>
+                        Are you sure you want to reset the password for <span className="font-semibold text-surface-900">{techToReset?.fullName}</span>? 
+                        New credentials will be generated and emailed to them.
+                    </>
+                }
+                confirmText="Reset Password"
+                onConfirm={handleResetPassword}
+                onCancel={() => !resetting && setTechToReset(null)}
+                isLoading={resetting !== null}
+            />
+
+            {/* Toggle Status Confirmation Modal */}
+            <ConfirmModal
+                isOpen={!!techToToggle}
+                title={techToToggle?.isDisabled ? "Activate Technician" : "Suspend Technician"}
+                message={
+                    <>
+                        Are you sure you want to {techToToggle?.isDisabled ? "activate" : "suspend"} <span className="font-semibold text-surface-900">{techToToggle?.fullName}</span>?
+                        {!techToToggle?.isDisabled && " They will no longer be able to log in or receive new assignments."}
+                    </>
+                }
+                confirmText={techToToggle?.isDisabled ? "Activate" : "Suspend"}
+                isDanger={!techToToggle?.isDisabled}
+                onConfirm={handleToggleStatus}
+                onCancel={() => !toggling && setTechToToggle(null)}
+                isLoading={toggling !== null}
+            />
         </div>
     );
 }

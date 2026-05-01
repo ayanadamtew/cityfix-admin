@@ -7,6 +7,7 @@ import { Users as UsersIcon, Shield, Search, Plus, MoreVertical, ShieldAlert, Ke
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { AddAdminModal } from '@/components/ui/AddAdminModal';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import api from '@/lib/api';
 
 export default function UsersPage() {
@@ -18,6 +19,7 @@ export default function UsersPage() {
     const [loading, setLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [actioning, setActioning] = useState<string | null>(null);
+    const [userToToggle, setUserToToggle] = useState<User | null>(null);
 
     const [admins, setAdmins] = useState<User[]>([]);
     const [citizens, setCitizens] = useState<User[]>([]);
@@ -50,15 +52,21 @@ export default function UsersPage() {
         setAdmins(prev => [res.data.user, ...prev]);
     };
 
-    const handleToggleStatus = async (userId: string, currentStatus: boolean | undefined) => {
+    const handleToggleStatus = async () => {
+        if (!userToToggle) return;
+        const userId = userToToggle.id || userToToggle._id;
+        const currentStatus = userToToggle.isDisabled;
+        if (!userId) return;
+
         setActioning(userId);
         try {
             const newStatus = !currentStatus;
             await api.put(`/admin/users/${userId}/status`, { isDisabled: newStatus });
 
             // Update local state (check both lists since user could be in either)
-            setCitizens(prev => prev.map(c => c._id === userId ? { ...c, isDisabled: newStatus } : c));
-            setAdmins(prev => prev.map(a => a._id === userId ? { ...a, isDisabled: newStatus } : a));
+            setCitizens(prev => prev.map(c => (c.id === userId || c._id === userId) ? { ...c, isDisabled: newStatus } : c));
+            setAdmins(prev => prev.map(a => (a.id === userId || a._id === userId) ? { ...a, isDisabled: newStatus } : a));
+            setUserToToggle(null);
         } catch (error) {
             console.error('Failed to toggle user status:', error);
         } finally {
@@ -131,7 +139,7 @@ export default function UsersPage() {
                                         <div className="flex items-center justify-end gap-2">
                                             {admin.role !== 'SUPER_ADMIN' ? (
                                                 <button
-                                                    onClick={() => handleToggleStatus(admin._id!, admin.isDisabled)}
+                                                    onClick={() => setUserToToggle(admin)}
                                                     disabled={actioning === admin._id}
                                                     className={`px-3 py-1 text-xs font-medium rounded border transition-colors disabled:opacity-50 ${admin.isDisabled
                                                         ? 'border-success/30 text-success hover:bg-success/10'
@@ -195,7 +203,7 @@ export default function UsersPage() {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <button
-                                            onClick={() => handleToggleStatus(cit._id!, cit.isDisabled)}
+                                            onClick={() => setUserToToggle(cit)}
                                             disabled={actioning === cit._id}
                                             className={`px-3 py-1 text-xs font-medium rounded border transition-colors disabled:opacity-50 ${cit.isDisabled
                                                 ? 'border-success/30 text-success hover:bg-success/10'
@@ -279,6 +287,23 @@ export default function UsersPage() {
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 onAdd={handleAddAdmin}
+            />
+
+            {/* Toggle Status Confirmation Modal */}
+            <ConfirmModal
+                isOpen={!!userToToggle}
+                title={userToToggle?.isDisabled ? "Activate User Account" : "Suspend User Account"}
+                message={
+                    <>
+                        Are you sure you want to {userToToggle?.isDisabled ? "activate" : "suspend"} <span className="font-semibold text-surface-900">{userToToggle?.fullName}</span>?
+                        {!userToToggle?.isDisabled && " They will be immediately logged out and unable to access the system."}
+                    </>
+                }
+                confirmText={userToToggle?.isDisabled ? "Activate" : "Suspend"}
+                isDanger={!userToToggle?.isDisabled}
+                onConfirm={handleToggleStatus}
+                onCancel={() => !actioning && setUserToToggle(null)}
+                isLoading={actioning !== null}
             />
         </div>
     );

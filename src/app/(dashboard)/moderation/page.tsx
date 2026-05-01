@@ -7,6 +7,7 @@ import { IssueReport, User } from '@/types';
 import { ShieldAlert, Trash2, CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import Link from 'next/link';
 import { io } from 'socket.io-client';
 
@@ -25,6 +26,8 @@ export default function ModerationPage() {
     const [reports, setReports] = useState<ReportedPost[]>([]);
     const [loading, setLoading] = useState(true);
     const [actioning, setActioning] = useState<string | null>(null);
+    const [reportToDismiss, setReportToDismiss] = useState<ReportedPost | null>(null);
+    const [reportToDelete, setReportToDelete] = useState<ReportedPost | null>(null);
 
     useEffect(() => {
         if (isSuperAdmin) {
@@ -50,11 +53,14 @@ export default function ModerationPage() {
         }
     }, [isSuperAdmin]);
 
-    const handleDismiss = async (reportId: string) => {
+    const handleDismiss = async () => {
+        if (!reportToDismiss) return;
+        const reportId = reportToDismiss.id;
         setActioning(`dismiss-${reportId}`);
         try {
             await api.delete(`/admin/moderation/reports/${reportId}/dismiss`);
             setReports(reports.filter(r => r.id !== reportId));
+            setReportToDismiss(null);
         } catch (error) {
             console.error('Error dismissing report:', error);
         } finally {
@@ -62,11 +68,14 @@ export default function ModerationPage() {
         }
     };
 
-    const handleDeleteIssue = async (reportId: string, issueId: string) => {
+    const handleDeleteIssue = async () => {
+        if (!reportToDelete) return;
+        const reportId = reportToDelete.id;
         setActioning(`delete-${reportId}`);
         try {
             await api.delete(`/admin/moderation/reports/${reportId}/issue`);
             setReports(reports.filter(r => r.id !== reportId));
+            setReportToDelete(null);
         } catch (error) {
             console.error('Error deleting issue:', error);
         } finally {
@@ -133,7 +142,7 @@ export default function ModerationPage() {
                                 {/* Actions */}
                                 <div className="md:w-1/4 shrink-0 flex flex-row md:flex-col gap-3 justify-end items-end">
                                     <button
-                                        onClick={() => handleDismiss(report.id)}
+                                        onClick={() => setReportToDismiss(report)}
                                         disabled={actioning === `dismiss-${report.id}` || actioning === `delete-${report.id}`}
                                         className="w-full justify-center flex items-center gap-2 px-4 py-2 bg-surface-100 hover:bg-surface-100 text-surface-900 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
                                     >
@@ -141,7 +150,7 @@ export default function ModerationPage() {
                                         Dismiss Flag
                                     </button>
                                     <button
-                                        onClick={() => handleDeleteIssue(report.id, report.issue?.id || (report.issue as any)?._id)}
+                                        onClick={() => setReportToDelete(report)}
                                         disabled={actioning === `delete-${report.id}` || actioning === `dismiss-${report.id}`}
                                         className="w-full justify-center flex items-center gap-2 px-4 py-2 bg-danger/10 hover:bg-danger/20 text-danger border border-danger/20 rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
                                     >
@@ -154,6 +163,37 @@ export default function ModerationPage() {
                     </div>
                 )}
             </div>
+
+            {/* Dismiss Confirmation Modal */}
+            <ConfirmModal
+                isOpen={!!reportToDismiss}
+                title="Dismiss Report Flag"
+                message={
+                    <>
+                        Are you sure you want to dismiss this flag? The issue reported by <span className="font-semibold text-surface-900">{reportToDismiss?.issue?.citizen?.fullName || 'the citizen'}</span> will remain on the platform, and the flag will be permanently removed.
+                    </>
+                }
+                confirmText="Dismiss Flag"
+                onConfirm={handleDismiss}
+                onCancel={() => !actioning && setReportToDismiss(null)}
+                isLoading={actioning !== null}
+            />
+
+            {/* Delete Issue Confirmation Modal */}
+            <ConfirmModal
+                isOpen={!!reportToDelete}
+                title="Delete Flagged Issue"
+                message={
+                    <>
+                        Are you sure you want to delete this reported issue? This action is <span className="font-semibold text-danger">irreversible</span>. The citizen's issue will be completely removed from the platform.
+                    </>
+                }
+                confirmText="Delete Issue"
+                isDanger={true}
+                onConfirm={handleDeleteIssue}
+                onCancel={() => !actioning && setReportToDelete(null)}
+                isLoading={actioning !== null}
+            />
         </div>
     );
 }
